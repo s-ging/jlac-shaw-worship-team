@@ -1,5 +1,5 @@
 <svelte:head>
-  <meta name="google-site-verification" content="google6a49a98eb50e8f0b.html" />
+  <meta name="google-site-verification" content="8hpVksQEhGH5FGCx-03VCdN9Upt_OKcLn4cowsuoT4I" />
 </svelte:head>
 
 <script lang="ts">
