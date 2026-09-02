@@ -1,3 +1,5 @@
+import { parseEventDescription, parsedToAssignments } from './calendar-parser'
+
 const CALENDAR_ID = '9a716d356291248887be20bd495e2f774cf2f47953825b06787fe831744e3709@group.calendar.google.com'
 const API_KEY = 'AIzaSyBqRCAKtqpCVTCq9yA_HYMontVvX5rGnOo'
 
@@ -20,52 +22,56 @@ export async function fetchMonthEvents(year: number, month: number) {
       return []
     }
     
-    console.log(`✅ Found ${data.items?.length || 0} events`)
     return data.items || []
   } catch (error) {
     console.error('❌ Failed to fetch calendar:', error)
     return []
   }
 }
-
-export function parseEventToAssignment(event: any) {
-  const summary = event.summary || ''
-  const attendees = event.attendees || []
+export function processEvent(event: any) {
+  const description = event.description || ''
+  console.log('📝 Raw description:', description.substring(0, 200) + '...')
   
-  let instrumentSlot = 'Secondary Vocal'
-  let profileName = summary
+  const parsed = parseEventDescription(description)
+  console.log('📊 Parsed result:', {
+    theme: parsed.theme,
+    playlistUrl: parsed.playlistUrl,
+    vocalists: parsed.assignments.vocalists,
+    instrumentalists: parsed.assignments.instrumentalists,
+    media: parsed.assignments.media
+  })
   
-  if (summary.includes('🥁')) { instrumentSlot = 'Drums' }
-  else if (summary.includes('🎸 Lead')) { instrumentSlot = 'Guitar' }
-  else if (summary.includes('🎸 Bass')) { instrumentSlot = 'Bass' }
-  else if (summary.includes('1️⃣')) { instrumentSlot = 'Lead Vocal' }
-  else if (summary.includes('2️⃣')) { instrumentSlot = 'Sub-Lead Vocal' }
-  else if (summary.includes('3️⃣')) { instrumentSlot = 'Secondary Vocal' }
-  
-  const match = summary.match(/[️⃣🥁🎸]+\s*(.+)/)
-  if (match) {
-    profileName = match[1].trim()
-  }
-  
-  const attendee = attendees.find((a: any) => a.email && a.email.includes('@'))
-  const confirmed = attendee?.responseStatus === 'accepted'
+  const assignments = parsedToAssignments(parsed, event.id)
+  console.log(`📋 Generated ${assignments.length} assignments`)
   
   return {
-    id: `cal-assign-${event.id || Date.now()}`,
-    profile_id: `cal-profile-${profileName}`,
-    instrument_slot: instrumentSlot,
-    is_primary: true,
-    confirmed: confirmed || false,
-    profile: {
-      id: `cal-profile-${profileName}`,
-      name: profileName,
-      nickname: profileName,
-      email: attendee?.email || '',
-      instruments: [instrumentSlot],
-      is_superadmin: false,
-      is_worship_leader: false,
-      is_media: false,
-      created_at: new Date().toISOString()
+    id: event.id,
+    summary: event.summary || '',
+    start: event.start?.dateTime || event.start?.date,
+    theme: parsed.theme,
+    playlistUrl: parsed.playlistUrl,
+    assignments
+  }
+}
+
+// Get monthly theme from the month-long event
+export function extractMonthlyTheme(events: any[]) {
+  for (const event of events) {
+    const start = event.start?.date || event.start?.dateTime
+    const end = event.end?.date || event.end?.dateTime
+    
+    if (!start || !end) continue
+    
+    const startDate = new Date(start)
+    const endDate = new Date(end)
+    const duration = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+    
+    // Month-long event (duration > 7 days)
+    if (duration > 7) {
+      const description = event.description || ''
+      const parsed = parseEventDescription(description)
+      return parsed.theme || event.summary || ''
     }
   }
+  return ''
 }

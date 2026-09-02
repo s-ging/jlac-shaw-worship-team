@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import { format } from 'date-fns'
-  import { fetchMonthEvents, parseEventToAssignment } from '$lib/google-calendar'
+  import { fetchMonthEvents, processEvent, extractMonthlyTheme } from '$lib/google-calendar'
   import { getRoleLabel, getStatusIcon } from '$lib/group-assignments'
   import type { WeekWithDetails } from '$lib/types'
 
@@ -36,6 +36,10 @@
       weeks = mapEventsToWeeks(events)
       monthName = format(currentDate, 'MMM yyyy')
       
+      // Get monthly theme from month-long event
+      const monthlyTheme = extractMonthlyTheme(events)
+      if (monthlyTheme) monthTheme = monthlyTheme
+      
     } catch (err) {
       console.error('Error loading month:', err)
       error = 'Sorry, there seems to be a problem with the network. Please try again.'
@@ -52,6 +56,16 @@
       if (!date) continue
       
       const dateStr = date.split('T')[0]
+      
+      // Skip month-long events (duration > 7 days)
+      const start = event.start?.date || event.start?.dateTime
+      const end = event.end?.date || event.end?.dateTime
+      if (start && end) {
+        const startDate = new Date(start)
+        const endDate = new Date(end)
+        const duration = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+        if (duration > 7) continue
+      }
       
       if (!weekMap.has(dateStr)) {
         weekMap.set(dateStr, {
@@ -70,10 +84,11 @@
       }
       
       const week = weekMap.get(dateStr)!
-      const assignment = parseEventToAssignment(event)
-      if (assignment) {
-        week.assignments.push(assignment as any)
-      }
+      const processed = processEvent(event)
+      
+      if (processed.theme) week.theme = processed.theme
+      if (processed.playlistUrl) week.playlist_url = processed.playlistUrl
+      week.assignments.push(...processed.assignments)
     }
     
     return Array.from(weekMap.values())
@@ -93,17 +108,17 @@
   }
 
   function getMediaMembers(week: WeekWithDetails) {
-    return week.assignments?.filter(a => a.profile.is_media) || []
+    return week.assignments?.filter(a => a.instrument_slot === 'Media') || []
   }
 
   function prevMonth() {
     currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
-    loadMonth()
+    setTimeout(() => loadMonth(), 100)
   }
 
   function nextMonth() {
     currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
-    loadMonth()
+    setTimeout(() => loadMonth(), 100)
   }
 </script>
 
@@ -162,7 +177,7 @@
 
     <hr class="divider" />
 
-    <!-- Theme & Playlist (use first week as example) -->
+    <!-- Theme & Playlist -->
     {#if weeks.length > 0}
       {@const week = weeks[0]}
       <div class="theme-section">
@@ -183,7 +198,7 @@
 
     <hr class="divider" />
 
-    <!-- Team Grid - Show first week -->
+    <!-- Team Grid -->
     {#if weeks.length > 0}
       {@const week = weeks[0]}
       
@@ -205,16 +220,26 @@
       <!-- Instrumentalists -->
       <div class="instrument-group">
         <h3 class="group-title">🎸 INSTRUMENTALISTS</h3>
-        {#each ['Drums', 'Guitar', 'Bass'] as slot}
-          {@const assignments = getAssignmentsBySlot(week, slot)}
-          {#each assignments as assignment}
+        
+        <!-- Show all instrumentalists -->
+        {#each week.assignments as assignment}
+          {#if ['Drums', 'Bass', 'Lead', 'Rhythm', 'Guitar', 'L. Guitar', 'Lead Guitar', 'Rhythm Guitar'].includes(assignment.instrument_slot)}
             <div class="member-row">
               <span class="status">{getStatusIcon(assignment.confirmed)}</span>
               <span class="role">{getRoleLabel(assignment.instrument_slot)}</span>
               <span class="name">{assignment.profile.nickname}</span>
             </div>
-          {/each}
+          {/if}
         {/each}
+        
+        <!-- Show message if no instrumentalists -->
+        {#if !week.assignments.some(a => ['Drums', 'Bass', 'Lead', 'Rhythm', 'Guitar', 'L. Guitar', 'Lead Guitar', 'Rhythm Guitar'].includes(a.instrument_slot))}
+          <div class="member-row">
+            <span class="status">➖</span>
+            <span class="role">No instrumentalists assigned</span>
+            <span class="name">—</span>
+          </div>
+        {/if}
       </div>
 
       <!-- Media -->
