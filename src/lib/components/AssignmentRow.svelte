@@ -1,9 +1,18 @@
 <script lang="ts">
-  let { status, role, name, empty = false } = $props<{
+  let { 
+    status, 
+    role, 
+    name, 
+    empty = false, 
+    editable = false, 
+    onEdit 
+  } = $props<{
     status?: string
     role: string
     name?: string
     empty?: boolean
+    editable?: boolean
+    onEdit?: () => void
   }>()
 </script>
 
@@ -13,7 +22,12 @@
   {:else}
     <span class="status">{status}</span>
     <span class="role">{role}</span>
-    <span class="name">{name}</span>
+    <span class="name-wrapper">
+      <span class="name">{name}</span>
+      {#if editable}
+        <button class="edit-btn" on:click={onEdit}>✏️</button>
+      {/if}
+    </span>
   {/if}
 </div>
 
@@ -50,8 +64,29 @@
     color: var(--color-text-secondary);
   }
 
+  .name-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+  }
+
   .name {
     font-weight: 500;
     text-align: right;
+  }
+
+  .edit-btn {
+    background: none;
+    border: none;
+    padding: 2px 4px;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+
+  .edit-btn:hover {
+    background: #f0f0f0;
   }
 </style>
