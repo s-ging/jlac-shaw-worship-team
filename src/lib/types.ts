@@ -30,6 +30,19 @@ export interface Assignment {
   is_primary: boolean
   confirmed: boolean
   created_at: string
+  profile?: Profile 
+}
+
+export interface Profile {
+  id: string
+  name: string
+  nickname: string
+  email: string
+  instruments: string[]
+  is_superadmin: boolean
+  is_worship_leader: boolean
+  is_media: boolean
+  created_at: string
 }
 
 export interface WeekWithDetails extends Week {
