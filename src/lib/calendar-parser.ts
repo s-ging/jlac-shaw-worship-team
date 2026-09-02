@@ -1,3 +1,5 @@
+// src/lib/calendar-parser.ts
+
 export interface ParsedEvent {
   theme: string
   playlistUrl: string
@@ -6,6 +8,64 @@ export interface ParsedEvent {
     instrumentalists: { instrument: string; name: string }[]
     media: string[]
   }
+}
+
+// Centralized instrument mapping
+const INSTRUMENT_MAP: Record<string, string> = {
+  // Drums
+  'Drums': 'Drums',
+  'Drum': 'Drums',
+  
+  // Lead Guitar
+  'L. Guitar': 'Lead',
+  'L Guitar': 'Lead',
+  'Lead Guitar': 'Lead',
+  'Lead': 'Lead',
+  
+  // Rhythm Guitar
+  'R. Guitar': 'Rhythm',
+  'R Guitar': 'Rhythm',
+  'Rhythm Guitar': 'Rhythm',
+  'Rhythm': 'Rhythm',
+  
+  // Bass
+  'Bass': 'Bass',
+  'Bass Guitar': 'Bass',
+}
+
+// Helper: Clean instrument name (remove emojis and normalize)
+function cleanInstrumentName(raw: string): string {
+  // Remove common emojis
+  let cleaned = raw
+    .replace(/[🥁🎸]/g, '')
+    .trim()
+  
+  // Check if it matches any known instrument (case-insensitive)
+  for (const [key, value] of Object.entries(INSTRUMENT_MAP)) {
+    if (cleaned.toLowerCase() === key.toLowerCase()) {
+      return value
+    }
+  }
+  
+  // If no match, return cleaned version
+  return cleaned
+}
+
+// Helper: Normalize instrument name with mapping
+function normalizeInstrument(raw: string): string {
+  // Remove emojis first
+  let cleaned = raw.replace(/[🥁🎸]/g, '').trim()
+  
+  // Check case-insensitive mapping
+  const lower = cleaned.toLowerCase()
+  for (const [key, value] of Object.entries(INSTRUMENT_MAP)) {
+    if (lower === key.toLowerCase()) {
+      return value
+    }
+  }
+  
+  // Fallback: return cleaned raw name
+  return cleaned || raw
 }
 
 export function parseEventDescription(description: string): ParsedEvent {
@@ -21,116 +81,65 @@ export function parseEventDescription(description: string): ParsedEvent {
   
   if (!description) return result
   
-  // 🔍 DEBUG: Log raw description
-  console.log('='.repeat(80))
-  console.log('📝 RAW DESCRIPTION:')
-  console.log(description)
-  console.log('-'.repeat(80))
-  
-  // STEP 1: Clean HTML tags - replace <br> with newlines, remove <b>
+  // STEP 1: Clean HTML tags
   let cleanText = description
-    .replace(/<\/?b>/g, '')           // Remove <b> and </b>
-    .replace(/<br\s*\/?>/gi, '\n')    // Replace <br> with newline
-    .replace(/&nbsp;/g, ' ')          // Replace &nbsp; with space
+    .replace(/<\/?b>/g, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/&nbsp;/g, ' ')
   
-  // 🔍 DEBUG: Log cleaned text
-  console.log('🧹 CLEANED TEXT:')
-  console.log(cleanText)
-  console.log('-'.repeat(80))
-  
-  // STEP 2: Split into lines and clean each line
+  // STEP 2: Split into lines
   let lines = cleanText.split('\n')
     .map(line => line.trim())
     .filter(line => line.length > 0)
   
-  // 🔍 DEBUG: Log lines
-  console.log('📄 LINES (count: ' + lines.length + '):')
-  lines.forEach((line, i) => {
-    console.log(`  [${i}]: "${line}"`)
-  })
-  console.log('-'.repeat(80))
-  
-  // STEP 3: Extract YouTube playlist URL (check in raw description first)
+  // STEP 3: Extract YouTube playlist URL
   const playlistMatch = description.match(/(?:href=")?(https?:\/\/(?:www\.)?youtube\.com\/playlist\?list=[^\s&"']+)/i)
   if (playlistMatch) {
     result.playlistUrl = playlistMatch[1]
-    console.log('✅ PLAYLIST URL FOUND:', result.playlistUrl)
   } else {
     const youtubeMatch = description.match(/(https?:\/\/(?:www\.)?youtu\.be\/[^\s&"']+)/i)
     if (youtubeMatch) {
       result.playlistUrl = youtubeMatch[1]
-      console.log('✅ YOUTUBE URL FOUND:', result.playlistUrl)
-    } else {
-      console.log('❌ NO PLAYLIST URL FOUND')
     }
   }
-  console.log('-'.repeat(80))
   
-  // STEP 4: Check which parsing path we're taking
-  console.log('🔀 PARSING PATH: ' + (lines.length === 1 ? 'SINGLE LINE' : 'MULTI-LINE'))
-  
-  // STEP 5: Try to find section markers in the raw text
-  const hasVocalists = /Vocalists/i.test(cleanText)
-  const hasInstrumentalists = /Instrumentalists/i.test(cleanText)
-  const hasMedia = /Media/i.test(cleanText)
-  console.log('📌 SECTION MARKERS:')
-  console.log(`  Vocalists: ${hasVocalists ? '✅' : '❌'}`)
-  console.log(`  Instrumentalists: ${hasInstrumentalists ? '✅' : '❌'}`)
-  console.log(`  Media: ${hasMedia ? '✅' : '❌'}`)
-  console.log('-'.repeat(80))
-  
-  // STEP 6: Find positions of section markers
-  const vocalistsIndex = cleanText.search(/Vocalists/i)
-  const instrumentalistsIndex = cleanText.search(/Instrumentalists/i)
-  const mediaIndex = cleanText.search(/Media/i)
-  
-  console.log('📌 SECTION POSITIONS:')
-  console.log(`  Vocalists at index: ${vocalistsIndex}`)
-  console.log(`  Instrumentalists at index: ${instrumentalistsIndex}`)
-  console.log(`  Media at index: ${mediaIndex}`)
-  console.log('-'.repeat(80))
-  
-  // STEP 7: If we have only 1 line, try to split by known section markers
+  // STEP 4: Try single-line parsing (the working approach)
   if (lines.length === 1) {
-    // Split by "Vocalists", "Instrumentalists", "Media" markers
     const text = lines[0]
     
     // Find section boundaries
-    const vocalistsIndexLocal = text.search(/Vocalists/i)
-    const instrumentalistsIndexLocal = text.search(/Instrumentalists/i)
-    const mediaIndexLocal = text.search(/Media/i)
+    const vocalistsIndex = text.search(/Vocalists/i)
+    const instrumentalistsIndex = text.search(/Instrumentalists/i)
+    const mediaIndex = text.search(/Media/i)
     
-    // Extract sections
     let vocalistsText = ''
     let instrumentalistsText = ''
     let mediaText = ''
     let themeText = ''
     
     // Get theme (everything before "Vocalists")
-    if (vocalistsIndexLocal > 0) {
-      themeText = text.substring(0, vocalistsIndexLocal).trim()
+    if (vocalistsIndex > 0) {
+      themeText = text.substring(0, vocalistsIndex).trim()
     }
     
     // Get vocalists (between "Vocalists" and "Instrumentalists")
-    if (vocalistsIndexLocal >= 0 && instrumentalistsIndexLocal > vocalistsIndexLocal) {
-      vocalistsText = text.substring(vocalistsIndexLocal, instrumentalistsIndexLocal).trim()
+    if (vocalistsIndex >= 0 && instrumentalistsIndex > vocalistsIndex) {
+      vocalistsText = text.substring(vocalistsIndex, instrumentalistsIndex).trim()
     }
     
     // Get instrumentalists (between "Instrumentalists" and "Media")
-    if (instrumentalistsIndexLocal >= 0 && mediaIndexLocal > instrumentalistsIndexLocal) {
-      instrumentalistsText = text.substring(instrumentalistsIndexLocal, mediaIndexLocal).trim()
+    if (instrumentalistsIndex >= 0 && mediaIndex > instrumentalistsIndex) {
+      instrumentalistsText = text.substring(instrumentalistsIndex, mediaIndex).trim()
     }
     
     // Get media (after "Media")
-    if (mediaIndexLocal >= 0) {
-      mediaText = text.substring(mediaIndexLocal).trim()
+    if (mediaIndex >= 0) {
+      mediaText = text.substring(mediaIndex).trim()
     }
     
     // Parse theme
     if (themeText) {
-      // Remove "Theme:" prefix if present
       let theme = themeText.replace(/^Theme:\s*/i, '').trim()
-      // Remove "Devotion Time" and everything after
       const devotionIndex = theme.search(/Devotion Time/i)
       if (devotionIndex > 0) {
         theme = theme.substring(0, devotionIndex).trim()
@@ -138,11 +147,9 @@ export function parseEventDescription(description: string): ParsedEvent {
       result.theme = theme
     }
     
-    // Parse vocalists from vocalistsText
+    // Parse vocalists
     if (vocalistsText) {
-      // Remove "Vocalists" header
       const textWithoutHeader = vocalistsText.replace(/^Vocalists\s*/i, '')
-      // Split by numbered items (1️⃣, 2️⃣, 3️⃣)
       const vocalistMatches = textWithoutHeader.match(/([0-9]️⃣)\s*([^:]+?)\s*[-–—]\s*([^(]+?)(?=\s*(?:[0-9]️⃣|Instrumentalists|$))/g)
       if (vocalistMatches) {
         for (const match of vocalistMatches) {
@@ -159,12 +166,11 @@ export function parseEventDescription(description: string): ParsedEvent {
       }
     }
     
-    // Parse instrumentalists - KEEP IT SIMPLE
+    // Parse instrumentalists - USING NORMALIZED INSTRUMENT NAMES
     if (instrumentalistsText) {
       const textWithoutHeader = instrumentalistsText.replace(/^Instrumentalists\s*/i, '')
-      
-      // Split by newlines or find all lines with a dash
-      const instLines = textWithoutHeader.split(/\n/).filter(line => line.includes('-') || line.includes('–') || line.includes('—'))
+      // Split by newlines
+      const instLines = textWithoutHeader.split(/\n/).filter(line => line.trim())
       
       for (const line of instLines) {
         const trimmed = line.trim()
@@ -173,18 +179,27 @@ export function parseEventDescription(description: string): ParsedEvent {
         // Remove any emoji at the start
         const cleanLine = trimmed.replace(/^[^\w\s]+/, '').trim()
         
-        // Split by dash
-        const parts = cleanLine.split(/\s*[-–—]\s*/)
-        if (parts.length === 2) {
+        // Find the dash separator
+        const dashIndex = cleanLine.search(/[-–—]/)
+        if (dashIndex === -1) continue
+        
+        // Everything before the dash is the instrument (including emoji)
+        let rawInstrument = cleanLine.substring(0, dashIndex).trim()
+        const name = cleanLine.substring(dashIndex + 1).trim()
+        
+        // Normalize the instrument name using the mapping
+        const normalizedInstrument = normalizeInstrument(rawInstrument)
+        
+        if (name) {
           result.assignments.instrumentalists.push({
-            instrument: parts[0].trim(),
-            name: parts[1].trim()
+            instrument: normalizedInstrument,
+            name: name
           })
         }
       }
     }
     
-    // Parse media from mediaText
+    // Parse media
     if (mediaText) {
       const textWithoutHeader = mediaText.replace(/^Media\s*/i, '')
       const names = textWithoutHeader
@@ -194,17 +209,11 @@ export function parseEventDescription(description: string): ParsedEvent {
       result.assignments.media.push(...names)
     }
     
-    // At the very end, log what was parsed
-    console.log('📊 PARSED RESULT:')
-    console.log(JSON.stringify(result, null, 2))
-    console.log('='.repeat(80))
-    
     return result
   }
   
-  // STEP 8: Normal multi-line parsing (fallback for well-formatted text)
+  // STEP 5: Normal multi-line parsing (fallback for well-formatted text)
   let currentSection: 'vocalists' | 'instrumentalists' | 'media' | null = null
-  let themeLines: string[] = []
   
   for (const line of lines) {
     const trimmed = line.trim()
@@ -248,13 +257,20 @@ export function parseEventDescription(description: string): ParsedEvent {
         break
       }
       case 'instrumentalists': {
-        // Simple parsing for multi-line too
-        const cleanLine = trimmed.replace(/^[^\w\s]+/, '').trim()
-        const parts = cleanLine.split(/\s*[-–—]\s*/)
-        if (parts.length === 2) {
+        // Find the dash separator
+        const dashIndex = trimmed.search(/[-–—]/)
+        if (dashIndex === -1) break
+        
+        const rawInstrument = trimmed.substring(0, dashIndex).trim()
+        const name = trimmed.substring(dashIndex + 1).trim()
+        
+        // Normalize the instrument name
+        const normalizedInstrument = normalizeInstrument(rawInstrument)
+        
+        if (name) {
           result.assignments.instrumentalists.push({
-            instrument: parts[0].trim(),
-            name: parts[1].trim()
+            instrument: normalizedInstrument,
+            name: name
           })
         }
         break
@@ -269,11 +285,6 @@ export function parseEventDescription(description: string): ParsedEvent {
       }
     }
   }
-  
-  // At the very end, log what was parsed
-  console.log('📊 PARSED RESULT:')
-  console.log(JSON.stringify(result, null, 2))
-  console.log('='.repeat(80))
   
   return result
 }
@@ -311,18 +322,10 @@ export function parsedToAssignments(parsed: ParsedEvent, eventId: string) {
     })
   }
   
-  // Map instrumentalists
-  const instMap: Record<string, string> = {
-    'Drums': 'Drums',
-    'L. Guitar': 'Lead',
-    'Lead Guitar': 'Lead',
-    'Rhythm Guitar': 'Rhythm',
-    'R. Guiter': 'Rhythm',
-    'Bass': 'Bass'
-  }
-  
+  // Map instrumentalists (using the centralized mapping)
   for (const i of parsed.assignments.instrumentalists) {
-    const slot = instMap[i.instrument] || i.instrument
+    // The instrument should already be normalized, but just in case
+    const slot = INSTRUMENT_MAP[i.instrument] || i.instrument
     assignments.push({
       id: `assign-${eventId}-${i.name}`,
       profile_id: `profile-${i.name}`,

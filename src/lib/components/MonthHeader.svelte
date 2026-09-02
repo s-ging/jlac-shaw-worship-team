@@ -9,7 +9,10 @@
 
 <div class="month-header">
   <button class="nav-btn" onclick={onPrev}>‹</button>
-  <h1>{monthName} - {monthTheme}</h1>
+  <div class="month-info">
+      <h1>{monthName}</h1>
+      <h2>{monthTheme}</h2>
+  </div>
   <button class="nav-btn" onclick={onNext}>›</button>
 </div>
 
@@ -28,6 +31,22 @@
     text-align: center;
     flex: 1;
     margin: 0 8px;
+  }
+
+  .month-header h2 {
+    font-size: clamp(16px, 3vw, 18px);
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    text-align: center;
+    flex: 1;
+    margin: 0 8px;
+  }
+
+  .month-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
   }
 
   .nav-btn {

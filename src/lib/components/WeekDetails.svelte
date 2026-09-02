@@ -15,7 +15,7 @@
     <span class="info-label">🎵</span>
     {#if week.playlist_url}
       <a href={week.playlist_url} target="_blank" rel="noopener" class="playlist-link">
-        YouTube Playlist
+        YouTube Playlist Link
       </a>
     {:else}
       <span class="info-value">No playlist set</span>
@@ -27,6 +27,9 @@
 
 <style>
   .info-section {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
     padding: 12px 0;
   }
 
@@ -35,6 +38,7 @@
     align-items: center;
     gap: 8px;
     padding: 4px 0;
+    flex: 1;
   }
 
   .info-label {

@@ -24,7 +24,6 @@
 
   // Derived
   let currentWeek = $derived(weeks[selectedWeekIndex] || null)
-  let weekCount = $derived(weeks.length)
 
   // Lifecycle
   onMount(async () => {
@@ -116,14 +115,6 @@
     loadMonth()
   }
 
-  function prevWeek() {
-    if (selectedWeekIndex > 0) selectedWeekIndex--
-  }
-
-  function nextWeek() {
-    if (selectedWeekIndex < weeks.length - 1) selectedWeekIndex++
-  }
-
   function selectWeek(index: number) {
     selectedWeekIndex = index
   }
@@ -153,8 +144,6 @@
       {weeks}
       selectedIndex={selectedWeekIndex}
       onSelect={selectWeek}
-      onPrev={prevWeek}
-      onNext={nextWeek}
     />
 
     {#if currentWeek}

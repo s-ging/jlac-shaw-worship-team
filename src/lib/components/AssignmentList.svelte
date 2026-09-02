@@ -7,25 +7,27 @@
     week: WeekWithDetails
   }>()
 
-  const instrumentalSlots = ['Drums', 'Bass', 'Lead', 'Rhythm', 'Guitar', 'L. Guitar', 'Lead Guitar', 'Rhythm Guitar'] as const
   const vocalSlots = ['Lead Vocal', 'Sub-Lead Vocal', 'Secondary Vocal'] as const
-
-  type InstrumentalSlot = typeof instrumentalSlots[number]
 
   function getAssignmentsBySlot(slot: string): Assignment[] {
     return week.assignments?.filter((a: Assignment) => a.instrument_slot === slot) || []
   }
 
-  function isInstrumentalSlot(slot: string): slot is InstrumentalSlot {
-    return instrumentalSlots.includes(slot as InstrumentalSlot)
+  function getMediaMembers(): Assignment[] {
+    return week.assignments?.filter((a: Assignment) => a.instrument_slot === 'Media') || []
+  }
+
+  function isInstrumentalist(assignment: Assignment): boolean {
+    return !vocalSlots.includes(assignment.instrument_slot as any) 
+      && assignment.instrument_slot !== 'Media'
   }
 
   function getProfileName(assignment: Assignment): string {
     return assignment.profile?.nickname || assignment.profile_id || 'Unknown'
   }
 
-  // Get media members separately
-  const mediaMembers = week.assignments?.filter((a: Assignment) => a.instrument_slot === 'Media') || []
+  // Compute media members once in the script
+  const mediaMembers = getMediaMembers()
 </script>
 
 <!-- Vocalists -->
@@ -43,11 +45,11 @@
   {/each}
 </div>
 
-<!-- Instrumentalists -->
+<!-- Instrumentalists - ANY non-vocal, non-media assignment -->
 <div class="group">
   <h3 class="group-title">🎸 INSTRUMENTALISTS</h3>
   {#each week.assignments as assignment}
-    {#if isInstrumentalSlot(assignment.instrument_slot)}
+    {#if isInstrumentalist(assignment)}
       <AssignmentRow 
         status={getStatusIcon(assignment.confirmed)}
         role={getRoleLabel(assignment.instrument_slot)}
@@ -55,7 +57,7 @@
       />
     {/if}
   {/each}
-  {#if !week.assignments.some((a: Assignment) => isInstrumentalSlot(a.instrument_slot))}
+  {#if !week.assignments.some((a: Assignment) => isInstrumentalist(a))}
     <AssignmentRow empty={true} role="No instrumentalists assigned" />
   {/if}
 </div>
