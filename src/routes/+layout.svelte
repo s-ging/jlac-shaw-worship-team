@@ -1,3 +1,7 @@
+<svelte:head>
+  <meta name="google-site-verification" content="google6a49a98eb50e8f0b.html" />
+</svelte:head>
+
 <script lang="ts">
   import { onMount } from 'svelte';
   import { useAuth } from '$lib/auth.svelte';

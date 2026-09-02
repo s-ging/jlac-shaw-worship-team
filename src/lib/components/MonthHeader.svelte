@@ -10,8 +10,8 @@
 <div class="month-header">
   <button class="nav-btn" onclick={onPrev}>‹</button>
   <div class="month-info">
-      <h1>{monthName}</h1>
-      <h2>{monthTheme}</h2>
+      <h2>{monthName}</h2>
+      <h1>{monthTheme}</h1>
   </div>
   <button class="nav-btn" onclick={onNext}>›</button>
 </div>
