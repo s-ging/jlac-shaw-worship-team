@@ -14,8 +14,8 @@
   "compatibility_date": "2026-09-16",
   "pages_build_output_dir": ".svelte-kit/cloudflare",
 
-  // Replace each REPLACE_ME with the id printed by:
-  //   npx wrangler kv namespace create USERS_KV
+  // Namespace ids are created by `npm run setup:kv`. `id` is used by deployed
+  // environments; `preview_id` is what `npm run dev` binds to locally.
   "kv_namespaces": [
     {
       "binding": "USERS_KV",
