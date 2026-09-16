@@ -1,7 +1,5 @@
 import { parseEventDescription, parsedToAssignments } from './calendar-parser'
-
-const CALENDAR_ID = '9a716d356291248887be20bd495e2f774cf2f47953825b06787fe831744e3709@group.calendar.google.com'
-const API_KEY = 'AIzaSyBqRCAKtqpCVTCq9yA_HYMontVvX5rGnOo'
+import { CALENDAR_ID, GOOGLE_API_KEY } from './config'
 
 export async function fetchMonthEvents(year: number, month: number) {
   const startDate = new Date(year, month - 1, 1)
@@ -10,7 +8,7 @@ export async function fetchMonthEvents(year: number, month: number) {
   const timeMin = startDate.toISOString()
   const timeMax = endDate.toISOString()
   
-  const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?key=${API_KEY}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`
+  const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?key=${GOOGLE_API_KEY}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`
   
   try {
     console.log('📡 Fetching calendar events...')

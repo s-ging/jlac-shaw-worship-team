@@ -5,60 +5,91 @@
 <div class="legal-page">
   <div class="container">
     <h1>Privacy Policy</h1>
-    <p><strong>Effective Date:</strong> September 3, 2026</p>
+    <p><strong>Effective Date:</strong> September 16, 2026</p>
 
     <p>
-      JLAC Shaw Church ("we," "our," or "us") operates the Praise Team Scheduler 
-      application ("the App"). This Privacy Policy explains how we collect, use, 
+      JLAC Shaw Church ("we," "our," or "us") operates the Praise Team Scheduler
+      application ("the App"). This Privacy Policy explains how we collect, use,
       and protect your information when you use the App.
     </p>
 
+    <p>
+      The App is a private tool for members of the JLAC Shaw Church worship team.
+      Accounts are created by church administrators. There is no public sign-up.
+    </p>
+
     <h2>1. Information We Collect</h2>
-    <p>When you sign in with Google, we collect:</p>
+    <p>We collect only what is needed to schedule the worship team:</p>
     <ul>
-      <li><strong>Google Account Information:</strong> Your name, email address, and profile picture.</li>
-      <li><strong>Google Calendar Data:</strong> Event titles, dates, descriptions, and attendee lists (used solely for worship team scheduling).</li>
+      <li><strong>Account Information:</strong> Your name, an optional nickname, your email address, the instruments or roles you serve in, and your permission level within the App.</li>
+      <li><strong>Your Password:</strong> Stored only as a salted cryptographic hash. We cannot read your password.</li>
+      <li><strong>Sign-In Records:</strong> An active session identifier, and optionally the browser and device type you signed in from, so administrators can end sessions they do not recognize.</li>
+      <li><strong>Activity History:</strong> A record of changes you make in the App — for example reassigning a role or updating your availability — including what changed, and when.</li>
     </ul>
+    <p>
+      We do <strong>not</strong> collect your Google profile, your profile picture,
+      your contacts, or any calendar outside the single worship team calendar
+      described below.
+    </p>
 
     <h2>2. How We Use Your Information</h2>
     <ul>
-      <li>Display your assignments and schedule.</li>
+      <li>Display the worship schedule and your assignments within it.</li>
       <li>Allow worship leaders to assign team members to specific roles.</li>
-      <li>Sync schedule data between Google Calendar and our internal database (Supabase).</li>
+      <li>Let you indicate your availability for an upcoming service.</li>
+      <li>Maintain a visible history of schedule changes, so the team can see who changed what.</li>
     </ul>
-    <p>We do <strong>not</strong> sell, rent, or trade your personal information.</p>
+    <p>We do <strong>not</strong> sell, rent, or trade your personal information, and we do not use it for advertising.</p>
 
-    <h2>3. Data Storage</h2>
+    <h2>3. Google Calendar</h2>
     <p>
-      Your data is stored securely in <strong>Supabase</strong> (encrypted at rest) 
-      and cached locally in your browser for performance. We retain your data 
-      as long as your account is active or as needed to provide the service.
+      The worship schedule lives in a Google Calendar owned by the church. The App
+      reads that calendar to display the schedule, and writes back to it when a
+      worship leader changes an assignment.
+    </p>
+    <p>
+      This access is made through a <strong>single church-owned Google account</strong>.
+      The App does not ask you to connect your personal Google account, and it has no
+      access to your personal calendar, email, or Google profile.
     </p>
 
-    <h2>4. Your Rights</h2>
+    <h2>4. Data Storage</h2>
     <p>
-      You may request access to, correction of, or deletion of your personal data 
-      at any time by contacting us at the email below. If you stop using the App, 
-      we will remove your profile data upon request.
+      Your account information, sessions, and activity history are stored in
+      <strong>Cloudflare Workers KV</strong>, encrypted at rest, and served from
+      Cloudflare's network. Some schedule data is cached in your browser so the App
+      loads quickly. We retain your data for as long as your account is active, or
+      as needed to provide the service.
     </p>
 
-    <h2>5. Third-Party Services</h2>
+    <h2>5. Your Rights</h2>
+    <p>
+      You may request access to, correction of, or deletion of your personal data at
+      any time by contacting us at the email below. If you stop using the App, we
+      will remove your profile data upon request. Note that entries in the activity
+      history are kept as a record of schedule changes, but can be anonymized on request.
+    </p>
+    <p>
+      The App has no self-service password reset. If you forget your password, a
+      church administrator will set a new one for you.
+    </p>
+
+    <h2>6. Third-Party Services</h2>
     <p>
       We use the following trusted third-party services:
     </p>
     <ul>
-      <li><strong>Supabase</strong> – Database and authentication.</li>
-      <li><strong>Google Cloud</strong> – Calendar API and OAuth.</li>
-      <li><strong>Cloudflare Pages</strong> – Hosting.</li>
+      <li><strong>Cloudflare</strong> &ndash; Hosting, application logic, and data storage.</li>
+      <li><strong>Google Calendar</strong> &ndash; The source of the worship schedule.</li>
     </ul>
 
-    <h2>6. Changes to This Policy</h2>
+    <h2>7. Changes to This Policy</h2>
     <p>
       We may update this policy occasionally. Continued use of the App constitutes 
       acceptance of any changes.
     </p>
 
-    <h2>7. Contact Us</h2>
+    <h2>8. Contact Us</h2>
     <p>
       If you have questions, email us at: 
       <a href="mailto:jlacshawmedia01@gmail.com">jlacshawmedia01@gmail.com</a>

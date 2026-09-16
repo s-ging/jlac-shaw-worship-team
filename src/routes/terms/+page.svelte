@@ -20,7 +20,7 @@
 
     <h2>2. User Accounts</h2>
     <ul>
-      <li>You must sign in with a valid Google account.</li>
+      <li>You must sign in with an account created for you by a church administrator. There is no public sign-up.</li>
       <li>You are responsible for keeping your login credentials secure.</li>
       <li>Only active members and leaders of JLAC Shaw Church are authorized to use this App.</li>
     </ul>
