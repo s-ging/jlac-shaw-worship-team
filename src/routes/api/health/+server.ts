@@ -9,9 +9,10 @@ import type { RequestHandler } from './$types'
 export const GET: RequestHandler = async ({ platform }) => {
   const env = requireEnv(platform)
 
-  const [users, sessions, log] = await Promise.all([
+  const [users, sessions, rsvps, log] = await Promise.all([
     env.USERS_KV.list({ limit: 1000 }),
     env.SESSIONS_KV.list({ limit: 1000 }),
+    env.RSVP_KV.list({ limit: 1000 }),
     env.LOG_KV.list({ limit: 1000 })
   ])
 
@@ -21,6 +22,7 @@ export const GET: RequestHandler = async ({ platform }) => {
     kv: {
       users: users.keys.length,
       sessions: sessions.keys.length,
+      rsvps: rsvps.keys.length,
       log: log.keys.length
     }
   })

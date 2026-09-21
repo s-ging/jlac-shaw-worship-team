@@ -9,7 +9,11 @@ import type { KVNamespace } from '@cloudflare/workers-types';
 declare global {
 	namespace App {
 		// interface Error {}
-		// interface Locals {}
+
+		interface Locals {
+			/** Signed-in user for this request, populated in hooks.server.ts. */
+			user: import('$lib/types').UserRecord | null;
+		}
 		// interface PageData {}
 		// interface PageState {}
 
@@ -25,6 +29,7 @@ declare global {
 			env: {
 				USERS_KV: KVNamespace;
 				SESSIONS_KV: KVNamespace;
+				RSVP_KV: KVNamespace;
 				LOG_KV: KVNamespace;
 			};
 		}

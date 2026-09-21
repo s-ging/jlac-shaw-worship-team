@@ -608,13 +608,3 @@ Spread over evenings and weekends: 3–5 weeks.
 | Parser breaks on a new description format | Log the raw description; add tolerant parsing; the log makes diagnosis easy |
 | User forgets password | Admin resets; no email reset in V1 (documented) |
 | Subdomain SSL issue with Porkbun | Move DNS fully to Cloudflare, or use `pages.dev` as fallback |
-
----
-
-## What to Do Right Now
-
-**Start with Phase 0, Step 1.** Delete Supabase. It's the cleanest possible starting point, and everything after it assumes Supabase is gone.
-
-When Phase 0's acceptance checks pass, come back and we'll write Phase 1 together — actual code, actual files, actual commits.
-
-Fire when ready.
