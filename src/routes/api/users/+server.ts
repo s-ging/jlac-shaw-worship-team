@@ -1,6 +1,7 @@
 import { error, json } from '@sveltejs/kit'
 import { hashPassword } from '$lib/server/crypto'
 import { getUser, listUsers, normalizeEmail, putUser, toPublicUser } from '$lib/server/kv'
+import { timingSafeEqualString } from '$lib/server/crypto'
 import { requireEnv } from '$lib/server/platform'
 import { requireRole } from '$lib/server/auth'
 import type { UserRecord, UserRoles } from '$lib/types'
@@ -16,17 +17,21 @@ export const GET: RequestHandler = async (event) => {
 }
 
 /**
- * Creates a user.
+ * Creates a user. Superadmin-only, except for the one-time bootstrap path.
  *
- * Normally superadmin-only. The exception is first run: while USERS_KV holds no
- * users at all there is nobody who could authorize anything, so the first
- * request is allowed through and is forced to be a superadmin. The window shuts
- * permanently the moment that user exists.
+ * Bootstrap is gated on a BOOTSTRAP_SECRET binding rather than on "are there
+ * any users yet". That check is what an earlier version used, and it was
+ * unsound: KV list is eventually consistent, so it could still read empty
+ * moments after the first user was written and hand out a second unauthorized
+ * superadmin. A secret is a deterministic gate — no read, no race. Delete the
+ * binding once the first admin exists and this path is closed for good.
  */
 export const POST: RequestHandler = async (event) => {
   const env = requireEnv(event.platform)
-  const existing = await listUsers(env)
-  const isBootstrap = existing.length === 0
+
+  const offered = event.request.headers.get('x-bootstrap-secret')
+  const expected = env.BOOTSTRAP_SECRET
+  const isBootstrap = Boolean(expected && offered && timingSafeEqualString(offered, expected))
 
   if (!isBootstrap) requireRole(event, 'isSuperAdmin')
 

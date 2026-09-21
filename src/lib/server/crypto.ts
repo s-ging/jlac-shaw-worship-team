@@ -77,6 +77,13 @@ export async function verifyPassword(password: string, stored: string): Promise<
   }
 }
 
+/** Constant-time string comparison, for comparing secrets. */
+export function timingSafeEqualString(a: string, b: string): boolean {
+  const left = encoder.encode(a)
+  const right = encoder.encode(b)
+  return timingSafeEqual(left, right)
+}
+
 /** 256 bits of randomness, hex encoded. Used for session tokens. */
 export function generateToken(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(32))

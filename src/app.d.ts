@@ -31,6 +31,11 @@ declare global {
 				SESSIONS_KV: KVNamespace;
 				RSVP_KV: KVNamespace;
 				LOG_KV: KVNamespace;
+				/**
+				 * Set temporarily to create the first superadmin, then deleted.
+				 * Absent in normal operation, which disables the bootstrap path.
+				 */
+				BOOTSTRAP_SECRET?: string;
 			};
 		}
 	}
