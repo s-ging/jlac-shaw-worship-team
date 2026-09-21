@@ -11,6 +11,10 @@
   import BottomNav from '$lib/components/BottomNav.svelte'
   import LoadingState from '$lib/components/LoadingState.svelte'
   import ErrorState from '$lib/components/ErrorState.svelte'
+  import RsvpCard from '$lib/components/RsvpCard.svelte'
+
+  // Auth state comes from +layout.server.ts, so it is known at first paint.
+  let { data } = $props()
 
   let loading = $state(true)
   let error = $state<string | null>(null)
@@ -135,6 +139,7 @@
     {#if currentWeek}
       <WeekDetails week={currentWeek} />
       <AssignmentList week={currentWeek} />
+      <RsvpCard weekId={currentWeek.service_date} user={data.user} />
     {/if}
 
     <BottomNav active="calendar" />
