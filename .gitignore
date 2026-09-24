@@ -24,3 +24,6 @@ vite.config.ts.timestamp-*
 
 # Team rosters hold personal emails; see scripts/import-users.mjs
 scripts/roster*.tsv
+
+# Calendar description backups (see README)
+scripts/backups/

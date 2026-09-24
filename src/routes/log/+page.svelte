@@ -33,8 +33,6 @@
 
 <div class="page">
   <h1>Changelog</h1>
-  <p class="hint">Every change made in the app, newest first. New entries can take up to a minute to show.</p>
-
   {#if days.length === 0}
     <p class="empty">Nothing has changed yet.</p>
   {/if}
