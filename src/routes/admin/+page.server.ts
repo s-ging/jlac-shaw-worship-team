@@ -1,5 +1,6 @@
 import { error, redirect } from '@sveltejs/kit'
 import { listUsers, toPublicUser } from '$lib/server/kv'
+import { canUseDataConsole } from '$lib/server/kv-console'
 import { requireEnv } from '$lib/server/platform'
 import type { PageServerLoad } from './$types'
 
@@ -10,5 +11,5 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 
   const users = await listUsers(requireEnv(platform))
   users.sort((a, b) => a.name.localeCompare(b.name))
-  return { users: users.map(toPublicUser) }
+  return { users: users.map(toPublicUser), canUseDataConsole: canUseDataConsole(locals.user) }
 }

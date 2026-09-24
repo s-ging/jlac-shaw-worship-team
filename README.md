@@ -62,6 +62,35 @@ Calendar are not logged, only ones made in the app.
 `jlac-shaw-worship-team` → Deployments → pick the previous one → **Rollback**.
 Or revert the commit and push.
 
+**Data console.** **Admin** → **Data** (`/admin/data`). Limited to
+`krischanb.workweek@gmail.com` and `jlacshawmedia01@gmail.com`, and they must also
+be superadmins; other superadmins don't see the link and get a 403. The list is
+`DATA_CONSOLE_EMAILS` in `src/lib/server/kv-console.ts`; edit and redeploy to change it. The raw
+KV records behind the app, one "table" per namespace: browse, search by key
+prefix, open a record, and edit, create or delete it. Works on a phone. Use the
+People page for everyday changes; this console is for fixing things it can't.
+
+- Secrets stay hidden. `passwordHash` and a session's `token` show as `••••`;
+  leave them like that and the stored value is kept. Session keys are the
+  token itself, so they only ever appear truncated (`session:a1b2…f9d3`).
+  Change passwords on the People page, not here.
+- `user:` records are checked against the `UserRecord` shape (no unknown
+  fields, `email` must match the key). Edits keep the key's expiration and
+  metadata unless you change them under **Metadata and expiry**.
+- Deletes ask you to type the last part of the key. You can't delete your own
+  user record or the session you're using. For people, **Deactivate instead**
+  is safer and keeps their history.
+- **Sign someone out everywhere:** open their `user:` record → **Revoke all
+  sessions for this user**. To end one device's session, open it under
+  Sessions → **Revoke this session**.
+- The changelog (`LOG_KV`) is read-only here, always.
+- **Export** at the bottom of each table downloads it as JSON. Secrets are
+  masked unless you tick **Include secrets**; that export is logged, so store
+  the file somewhere private. Very large namespaces (over ~950 keys) are
+  refused: use `wrangler kv key list` for those.
+- Every change made here shows up in `/log`, naming the key and which fields
+  changed, never secret values.
+
 **Where the data is.** Cloudflare dashboard → Storage → KV. Production namespaces
 are the `id`s in `wrangler.jsonc`; the `preview_id`s are for local dev and
 preview deployments, so testing never touches real data.

@@ -23,9 +23,12 @@
 <div class="page">
   <div class="heading">
     <h1>People</h1>
-    {#if editing !== 'new'}
-      <button class="add" onclick={() => (editing = 'new')}>+ Add person</button>
-    {/if}
+    <div class="heading-actions">
+      {#if data.canUseDataConsole}<a class="data-link" href="/admin/data">Data</a>{/if}
+      {#if editing !== 'new'}
+        <button class="add" onclick={() => (editing = 'new')}>+ Add person</button>
+      {/if}
+    </div>
   </div>
 
   {#if editing === 'new'}
@@ -89,6 +92,22 @@
 
   h1 {
     font-size: 22px;
+  }
+
+  .heading-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .data-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 10px;
+    font-size: 14px;
+    color: var(--color-primary);
+    text-decoration: none;
   }
 
   h2 {
