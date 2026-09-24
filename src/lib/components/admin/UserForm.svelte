@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { partOf, PARTS, userParts } from '$lib/parts'
   import { rolesForTier, tierOf, TIER_LABELS, type Tier } from '$lib/roles'
   import type { PublicUser } from '$lib/types'
 
@@ -27,6 +28,12 @@
   let calendarNames = $state(initial?.aliases.join(', ') ?? '')
   let tier = $state<Tier>(initial ? tierOf(initial.roles) : 'member')
   let isMedia = $state(initial?.roles.isMedia ?? false)
+
+  // Parts decide who the lineup editor lists first for each slot.
+  const initialParts = initial ? [...userParts(initial)] : []
+  let parts = $state<string[]>(initialParts)
+  // Instrument text that isn't a known part ("media", a typo) is kept as-is.
+  const otherInstruments = initial?.instruments.filter((i: string) => !partOf(i)) ?? []
   let password = $state('')
   let active = $state(initial?.active ?? true)
 
@@ -49,6 +56,12 @@
     }
     // Left blank on create, the server uses their first name.
     if (aliases.length || !creating) payload.aliases = aliases
+    // Only rewrite instruments when the ticked parts changed, so saving an
+    // unrelated field doesn't churn the roster's original wording.
+    const partsChanged = [...parts].sort().join() !== [...initialParts].sort().join()
+    if (creating || partsChanged) {
+      payload.instruments = [...PARTS.filter((p) => parts.includes(p.key)).map((p) => p.label), ...otherInstruments]
+    }
     if (password) payload.password = password
     if (creating) payload.email = email
     else payload.active = active
@@ -96,6 +109,19 @@
     <input bind:value={calendarNames} placeholder="e.g. Kevin, Koya Kevin" autocomplete="off" disabled={saving} />
     <span class="help">How the schedule writes their name. Separate several with commas.</span>
   </label>
+
+  <fieldset>
+    <legend>Plays</legend>
+    <div class="parts">
+      {#each PARTS as part (part.key)}
+        <label class="choice part">
+          <input type="checkbox" value={part.key} bind:group={parts} disabled={saving} />
+          <span>{part.label}</span>
+        </label>
+      {/each}
+    </div>
+    <span class="help">Listed first for these slots in the lineup editor. Anyone can still be picked for any slot.</span>
+  </fieldset>
 
   <fieldset>
     <legend>Access</legend>
@@ -213,6 +239,16 @@
     display: flex;
     flex-direction: column;
     gap: 1px;
+  }
+
+  .parts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .choice.part {
+    align-items: center;
   }
 
   .choice input {

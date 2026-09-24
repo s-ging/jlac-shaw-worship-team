@@ -1,5 +1,6 @@
 <script lang="ts">
   import { editorSlots, extractLineup, labelText, type Lineup, type LineupSection, type LineupSlot } from '$lib/lineup'
+  import { calendarName, joinNames, matchUser, PARTS, slotParts, splitNames, userParts } from '$lib/parts'
   import type { PublicUser } from '$lib/types'
 
   let { eventId, description, onSaved } = $props<{
@@ -13,15 +14,36 @@
     { key: 'instrumentalists', title: '🎸 Instrumentalists', addLabel: '+ Add instrument' }
   ]
 
+  // Special dropdown values; real options are team members' emails.
+  const KEEP = '__keep'
+  const OTHER = '__other'
+
+  type Row = LineupSlot & {
+    /** Added in this edit, so its label is editable. */
+    custom: boolean
+    /** Showing a text box instead of the dropdown, for someone not on the team list. */
+    typing: boolean
+  }
+
   let open = $state(false)
   let saving = $state(false)
   let error = $state<string | null>(null)
 
   /** The lineup as it was when editing started. Sent back so the server can spot a conflicting edit. */
   let original: Lineup = { slots: [], media: '' }
-  let rows = $state<(LineupSlot & { custom: boolean })[]>([])
-  let media = $state('')
-  let people = $state<string[]>([])
+  let rows = $state<Row[]>([])
+
+  /** Active team members. Until they load (or if loading fails) every slot is a plain text box. */
+  let team = $state<PublicUser[]>([])
+  let teamLoaded = $state(false)
+
+  let mediaPicked = $state<string[]>([])
+  let mediaOthers = $state('')
+  let mediaFree = $state('')
+  let mediaTouched = $state(false)
+
+  const mediaTeam = $derived(team.filter((u) => u.roles.isMedia))
+  const mediaAsChecklist = $derived(teamLoaded && mediaTeam.length > 0)
 
   // An open editor belongs to one week. If the selected week changes, drop it.
   $effect(() => {
@@ -31,30 +53,86 @@
 
   function start() {
     original = extractLineup(description)
-    rows = editorSlots(original).map((slot) => ({ ...slot, custom: false }))
-    media = original.media
+    rows = editorSlots(original).map((slot) => ({ ...slot, custom: false, typing: false }))
+    mediaFree = original.media
+    mediaTouched = false
+    splitMedia()
     error = null
     open = true
-    if (people.length === 0) loadPeople()
+    if (!teamLoaded) loadTeam()
   }
 
-  /** Names as the calendar writes them, offered as suggestions. Typing any other name still works. */
-  async function loadPeople() {
+  async function loadTeam() {
     try {
       const res = await fetch('/api/users')
       if (!res.ok) return
       const body: { users: PublicUser[] } = await res.json()
-      const names = body.users
+      team = body.users
         .filter((u) => u.active)
-        .map((u) => u.aliases[0] || u.nickname || u.name.split(' ')[0])
-      people = [...new Set(names)].sort((a, b) => a.localeCompare(b))
+        .sort((a, b) => calendarName(a).localeCompare(calendarName(b)))
+      teamLoaded = true
+      if (!mediaTouched) splitMedia()
     } catch {
-      // Suggestions are a convenience; the form works without them.
+      // Text boxes still work without the list.
     }
   }
 
+  /** Media names the checklist recognizes get ticked; the rest go in the "others" box. */
+  function splitMedia() {
+    const picked: string[] = []
+    const others: string[] = []
+    for (const name of splitNames(original.media)) {
+      const member = matchUser(name, mediaTeam)
+      if (member) picked.push(calendarName(member))
+      else others.push(name)
+    }
+    mediaPicked = picked
+    mediaOthers = others.join(', ')
+  }
+
+  function toggleMedia(name: string) {
+    mediaTouched = true
+    mediaPicked = mediaPicked.includes(name) ? mediaPicked.filter((n) => n !== name) : [...mediaPicked, name]
+  }
+
+  function mediaText(): string {
+    if (!mediaAsChecklist) return mediaFree
+    // Untouched keeps the calendar's own wording ("Sam and Chan") exactly.
+    if (!mediaTouched) return original.media
+    return joinNames([...mediaPicked, ...splitNames(mediaOthers)])
+  }
+
+  function selectValue(row: Row): string {
+    if (!row.name.trim()) return ''
+    return matchUser(row.name, team)?.email ?? KEEP
+  }
+
+  function choose(row: Row, value: string) {
+    if (value === OTHER) row.typing = true
+    else if (value === '') row.name = ''
+    else if (value !== KEEP) {
+      const member = team.find((u) => u.email === value)
+      if (member) row.name = calendarName(member)
+    }
+  }
+
+  /** People who play this slot's part first, then everyone else. */
+  function groupsFor(row: Row): { label: string; people: PublicUser[] }[] {
+    const wanted = slotParts(row.label)
+    const qualified = team.filter((u) => wanted.some((p) => userParts(u).has(p)))
+    if (qualified.length === 0) return [{ label: 'Team', people: team }]
+
+    const partNames = PARTS.filter((p) => wanted.includes(p.key)).map((p) => p.label.toLowerCase())
+    return [
+      { label: `Plays ${partNames.join(' / ')}`, people: qualified },
+      { label: 'Everyone else', people: team.filter((u) => !qualified.includes(u)) }
+    ]
+  }
+
+  const optionLabel = (u: PublicUser) => `${calendarName(u)} · ${u.name}`
+
   function addRow(section: LineupSection) {
-    rows.push({ section, label: '', name: '', custom: true })
+    rows.push({ section, label: '', name: '', custom: true, typing: false })
   }
 
   async function save() {
@@ -66,7 +144,7 @@
       slots: rows
         .filter((r) => r.label.trim())
         .map(({ section, label, name }) => ({ section, label: label.trim(), name: name.trim() })),
-      media: media.trim()
+      media: mediaText().trim()
     }
 
     try {
@@ -101,13 +179,7 @@
     }}
   >
     <h3 class="title">Edit lineup</h3>
-    <p class="hint">Saves straight to Google Calendar. Leave a slot blank to remove it.</p>
-
-    <datalist id="team-names">
-      {#each people as person (person)}
-        <option value={person}></option>
-      {/each}
-    </datalist>
+    <p class="hint">Saves straight to Google Calendar. Choose "— Empty —" to clear a slot.</p>
 
     {#each SECTIONS as section (section.key)}
       <fieldset>
@@ -120,15 +192,38 @@
               {:else}
                 <label class="label" for="slot-{i}">{labelText(row.label)}</label>
               {/if}
-              <input
-                id="slot-{i}"
-                bind:value={row.name}
-                list="team-names"
-                placeholder="—"
-                maxlength="60"
-                autocomplete="off"
-                disabled={saving}
-              />
+
+              {#if row.typing || !teamLoaded}
+                <div class="typed">
+                  <input
+                    id="slot-{i}"
+                    bind:value={row.name}
+                    placeholder="—"
+                    maxlength="60"
+                    autocomplete="off"
+                    disabled={saving}
+                  />
+                  {#if teamLoaded}
+                    <button type="button" class="link" onclick={() => (row.typing = false)} disabled={saving}>List</button>
+                  {/if}
+                </div>
+              {:else}
+                {@const value = selectValue(row)}
+                <select id="slot-{i}" {value} onchange={(e) => choose(row, e.currentTarget.value)} disabled={saving}>
+                  <option value="">— Empty —</option>
+                  {#if value === KEEP}
+                    <option value={KEEP}>{row.name} (not on team list)</option>
+                  {/if}
+                  {#each groupsFor(row) as group (group.label)}
+                    <optgroup label={group.label}>
+                      {#each group.people as person (person.email)}
+                        <option value={person.email}>{optionLabel(person)}</option>
+                      {/each}
+                    </optgroup>
+                  {/each}
+                  <option value={OTHER}>Someone else (type a name)…</option>
+                </select>
+              {/if}
             </div>
           {/if}
         {/each}
@@ -138,7 +233,27 @@
 
     <fieldset>
       <legend>📹 Media</legend>
-      <input bind:value={media} placeholder="e.g. Sam and Chan" maxlength="120" aria-label="Media" disabled={saving} />
+      {#if mediaAsChecklist}
+        <div class="chips">
+          {#each mediaTeam as member (member.email)}
+            {@const name = calendarName(member)}
+            <label class="chip" class:on={mediaPicked.includes(name)}>
+              <input type="checkbox" checked={mediaPicked.includes(name)} onchange={() => toggleMedia(name)} disabled={saving} />
+              {name}
+            </label>
+          {/each}
+        </div>
+        <input
+          bind:value={mediaOthers}
+          oninput={() => (mediaTouched = true)}
+          placeholder="Others not listed, e.g. Sam, Pam"
+          maxlength="100"
+          aria-label="Other media names"
+          disabled={saving}
+        />
+      {:else}
+        <input bind:value={mediaFree} placeholder="e.g. Sam and Chan" maxlength="120" aria-label="Media" disabled={saving} />
+      {/if}
     </fieldset>
 
     {#if error}
@@ -197,7 +312,7 @@
 
   .slot {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
     align-items: center;
     gap: 8px;
     margin-bottom: 6px;
@@ -208,13 +323,62 @@
     color: var(--color-text-secondary);
   }
 
-  input {
+  input,
+  select {
     width: 100%;
+    min-width: 0;
     font-size: 16px; /* 16px stops iOS Safari zooming on focus */
     padding: 9px 10px;
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
     background: white;
+    color: var(--color-text);
+  }
+
+  .typed {
+    display: flex;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .link {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    padding: 0 4px;
+    font-size: 13px;
+    color: var(--color-primary);
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 0 12px;
+    font-size: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  .chip.on {
+    background: var(--color-bg-active);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+
+  .chip input {
+    width: auto;
+    margin: 0;
   }
 
   .add {

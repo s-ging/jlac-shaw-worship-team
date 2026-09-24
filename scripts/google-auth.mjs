@@ -54,7 +54,10 @@ const authUrl =
     response_type: 'code',
     scope: SCOPE,
     access_type: 'offline',
-    prompt: 'consent', // forces Google to issue a refresh token even on a repeat sign-in
+    // select_account: always show the account chooser, so a browser signed in to
+    // several Google accounts doesn't silently pick the first one.
+    // consent: forces Google to issue a refresh token even on a repeat sign-in.
+    prompt: 'select_account consent',
     login_hint: ACCOUNT,
     state
   })
@@ -98,7 +101,8 @@ function waitForCode() {
 }
 
 console.log(`\nSign in as ${ACCOUNT} in the browser window that just opened.`)
-console.log(`If it didn't open, visit:\n\n  ${authUrl}\n`)
+console.log('Pick that account in the chooser (or "Use another account").')
+console.log(`If the wrong account keeps winning, paste this into a private/InPrivate window instead:\n\n  ${authUrl}\n`)
 console.log(`If Google shows "redirect_uri_mismatch", add ${REDIRECT_URI} to the OAuth client's`)
 console.log('Authorized redirect URIs in Google Cloud console, then rerun.\n')
 openBrowser(authUrl)
@@ -123,8 +127,10 @@ if (!tokenRes.ok || !tokens.refresh_token) {
 }
 
 // Confirm the account can actually edit the calendar before storing anything.
+// An events list reports the caller's accessRole and needs only the
+// calendar.events scope (calendarList would need a broader one).
 const calRes = await fetch(
-  `https://www.googleapis.com/calendar/v3/users/me/calendarList/${encodeURIComponent(CALENDAR_ID)}`,
+  `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?maxResults=1`,
   { headers: { authorization: `Bearer ${tokens.access_token}` } }
 )
 const cal = calRes.ok ? await calRes.json() : null
