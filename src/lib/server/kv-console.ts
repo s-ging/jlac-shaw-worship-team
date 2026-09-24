@@ -2,6 +2,7 @@ import { error, type RequestEvent } from '@sveltejs/kit'
 import type { KVNamespace, KVNamespaceListKey } from '@cloudflare/workers-types'
 import { DISPLAY_TIMEZONE } from '$lib/config'
 import { MASK, type KvNamespaceName } from '$lib/kv-namespaces'
+import { PRIMARY_ROLES } from '$lib/parts'
 import { TIER_LABELS, tierOf } from '$lib/roles'
 import type { LogEntry, UserRecord, UserRoles } from '$lib/types'
 import { requireRole, SESSION_COOKIE } from './auth'
@@ -366,6 +367,11 @@ const USER_FIELDS: Record<keyof UserRecord, Check> = {
   roles: [isRoles, `an object with exactly these true/false flags: ${ROLE_FLAGS.join(', ')}`],
   instruments: [isStringList, 'a list of strings'],
   aliases: [isStringList, 'a list of strings'],
+  primaryRole: [
+    (v) => PRIMARY_ROLES.some((r) => r.key === v),
+    `one of: ${PRIMARY_ROLES.map((r) => r.key).join(', ')}`,
+    true
+  ],
   createdAt: [isTimestamp, 'an ISO timestamp'],
   updatedAt: [isTimestamp, 'an ISO timestamp'],
   active: [(v) => typeof v === 'boolean', 'true or false'],

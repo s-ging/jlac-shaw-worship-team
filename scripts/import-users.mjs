@@ -15,6 +15,8 @@
  *   access          member | admin | superadmin
  *   media           yes | no
  *   instruments     comma-separated, free text
+ *   primary         optional column: leadvocal, backup, drums, lguitar, rguitar, bass, keys or media
+ *                   (PRIMARY_ROLES in src/lib/parts.ts)
  *
  * Lines starting with # are ignored. Emails that already have an account are
  * skipped, never overwritten, so it is safe to rerun after adding rows.
@@ -43,6 +45,8 @@ if (password.length < 8) {
 const COLUMNS = ['name', 'nickname', 'email', 'calendar_names', 'access', 'media', 'instruments']
 const ACCESS = ['member', 'admin', 'superadmin']
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+// Mirrors PRIMARY_ROLES in src/lib/parts.ts.
+const PRIMARY = ['leadvocal', 'backup', 'drums', 'lguitar', 'rguitar', 'bass', 'keys', 'media']
 
 const lines = readFileSync(file, 'utf8')
   .split(/\r?\n/)
@@ -69,8 +73,10 @@ const rows = lines.map(({ line, number }) => {
     aliases: get('calendar_names').split(';').map((s) => s.trim()).filter(Boolean),
     access: get('access').toLowerCase() || 'member',
     media: /^(yes|y|true)$/i.test(get('media')),
-    instruments: get('instruments').split(',').map((s) => s.trim()).filter(Boolean)
+    instruments: get('instruments').split(',').map((s) => s.trim()).filter(Boolean),
+    primary: get('primary').toLowerCase()
   }
+  if (row.primary && !PRIMARY.includes(row.primary)) problems.push(`line ${number}: primary must be one of ${PRIMARY.join(', ')}`)
   if (!row.name) problems.push(`line ${number}: missing name`)
   if (!EMAIL_RE.test(row.email)) problems.push(`line ${number}: invalid email "${row.email}"`)
   if (!ACCESS.includes(row.access)) problems.push(`line ${number}: access must be ${ACCESS.join(' / ')}`)
@@ -114,6 +120,7 @@ for (const r of toCreate) {
     roles: rolesFor(r.access, r.media),
     instruments: r.instruments,
     aliases: r.aliases.length ? r.aliases : [r.name.split(' ')[0]],
+    primaryRole: r.primary || undefined,
     createdAt: now,
     updatedAt: now,
     active: true,

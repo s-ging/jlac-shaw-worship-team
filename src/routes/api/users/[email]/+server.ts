@@ -4,6 +4,7 @@ import { getUser, normalizeEmail, putUser, toPublicUser } from '$lib/server/kv'
 import { appendLog } from '$lib/server/log'
 import { requireEnv } from '$lib/server/platform'
 import { requireRole } from '$lib/server/auth'
+import { PRIMARY_ROLES } from '$lib/parts'
 import { TIER_LABELS, tierOf } from '$lib/roles'
 import type { UserRecord, UserRoles } from '$lib/types'
 import type { RequestHandler } from './$types'
@@ -63,6 +64,16 @@ export const PATCH: RequestHandler = async (event) => {
     if (instruments.join('\n') !== user.instruments.join('\n')) {
       next.instruments = instruments
       changes.push(`instruments → ${instruments.join(', ') || 'none'}`)
+    }
+  }
+
+  if (typeof body.primaryRole === 'string') {
+    const primaryRole = body.primaryRole || undefined
+    const role = PRIMARY_ROLES.find((r) => r.key === primaryRole)
+    if (primaryRole && !role) throw error(400, 'Unknown primary role')
+    if (primaryRole !== user.primaryRole) {
+      next.primaryRole = primaryRole
+      changes.push(role ? `primary role → ${role.label}` : 'cleared primary role')
     }
   }
 

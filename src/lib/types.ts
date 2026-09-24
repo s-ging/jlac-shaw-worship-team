@@ -59,6 +59,8 @@ export interface UserRecord {
   instruments: string[]
   /** First names as they appear in Calendar descriptions, for name resolution. */
   aliases: string[]
+  /** What they mainly do: a part key from $lib/parts (`leadvocal`, `drums`…) or `media`. Unset until a superadmin picks it. */
+  primaryRole?: string
   createdAt: string
   updatedAt: string
   active: boolean

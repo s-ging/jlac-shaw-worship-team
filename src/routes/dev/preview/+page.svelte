@@ -6,7 +6,8 @@
   import { fetchMonthEvents } from '$lib/google-calendar'
   import { extractLineup, isServiceEvent, writeLineup, type Lineup as LineupData } from '$lib/lineup'
   import { calendarName, isNamed, lineupNames, namesOf } from '$lib/parts'
-  import { canEditSchedule, rolesForTier, type Tier } from '$lib/roles'
+  import { canEditSchedule } from '$lib/roles'
+  import { loadRoster } from '../roster'
   import type { PublicUser, RsvpPerson, RsvpRecord } from '$lib/types'
 
   /**
@@ -22,27 +23,6 @@
    * - RSVPs: start empty. Switch "Viewing as" and answer as different people.
    */
 
-  function parseRoster(text: string): PublicUser[] {
-    const lines = text.split(/\r?\n/).filter((l) => l.trim() && !l.trim().startsWith('#'))
-    const header = (lines.shift() ?? '').split('\t').map((h) => h.trim().toLowerCase())
-    return lines.map((line) => {
-      const cells = line.split('\t')
-      const get = (col: string) => (cells[header.indexOf(col)] ?? '').trim()
-      const access = (get('access').toLowerCase() || 'member') as Tier
-      return {
-        email: get('email').toLowerCase(),
-        name: get('name'),
-        nickname: get('nickname') || undefined,
-        aliases: get('calendar_names').split(';').map((s) => s.trim()).filter(Boolean),
-        roles: rolesForTier(access, /^(yes|y|true)$/i.test(get('media'))),
-        instruments: get('instruments').split(',').map((s) => s.trim()).filter(Boolean),
-        createdAt: '',
-        updatedAt: '',
-        active: true
-      }
-    })
-  }
-
   let TEAM = $state<PublicUser[]>([])
   let rosterLoaded = $state(false)
 
@@ -55,8 +35,7 @@
   let loadError = $state<string | null>(null)
 
   onMount(async () => {
-    const roster = await realFetch('/__dev/roster')
-    TEAM = roster.ok ? parseRoster(await roster.text()) : []
+    TEAM = await loadRoster(realFetch)
     viewerEmail = TEAM.find((u) => u.roles.isWorshipLeader)?.email ?? TEAM[0]?.email ?? ''
     rosterLoaded = true
 

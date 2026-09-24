@@ -45,6 +45,42 @@ export function userParts(user: Pick<PublicUser, 'instruments'>): Set<string> {
   return keys
 }
 
+/**
+ * What someone mainly does in the ministry: one of their parts, or Media.
+ * Stored as `UserRecord.primaryRole`; set by a superadmin on the People page.
+ */
+export const PRIMARY_ROLES: { key: string; label: string }[] = [
+  ...PARTS.map(({ key, label }) => ({ key, label })),
+  { key: 'media', label: 'Media' }
+]
+
+export function primaryRoleLabel(user: Pick<PublicUser, 'primaryRole'>): string | null {
+  return PRIMARY_ROLES.find((r) => r.key === user.primaryRole)?.label ?? null
+}
+
+/** Roles someone can have as primary: the parts they play, plus Media if they're on it. */
+export function primaryChoices(parts: string[], isMedia: boolean): { key: string; label: string }[] {
+  return PRIMARY_ROLES.filter((r) => (r.key === 'media' ? isMedia : parts.includes(r.key)))
+}
+
+/** The People page's ministry filter: what someone does on a Sunday, grouped the way the team talks. */
+export const MINISTRY_FILTERS: { key: string; label: string; parts: string[] }[] = [
+  { key: 'vocals', label: 'Vocals', parts: ['leadvocal', 'backup'] },
+  { key: 'drums', label: 'Drums', parts: ['drums'] },
+  { key: 'guitar', label: 'Guitar', parts: ['lguitar', 'rguitar'] },
+  { key: 'bass', label: 'Bass', parts: ['bass'] },
+  { key: 'keys', label: 'Keys', parts: ['keys'] },
+  { key: 'media', label: 'Media', parts: [] }
+]
+
+export function inMinistry(user: Pick<PublicUser, 'instruments' | 'roles'>, filterKey: string): boolean {
+  const filter = MINISTRY_FILTERS.find((f) => f.key === filterKey)
+  if (!filter) return true
+  if (filter.key === 'media') return user.roles.isMedia
+  const parts = userParts(user)
+  return filter.parts.some((p) => parts.has(p))
+}
+
 /** Which parts qualify someone for a lineup slot, by the slot's label. */
 const SLOT_PARTS: Record<string, string[]> = {
   praiseleader: ['leadvocal'],

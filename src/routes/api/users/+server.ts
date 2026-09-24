@@ -5,6 +5,7 @@ import { timingSafeEqualString } from '$lib/server/crypto'
 import { appendLog } from '$lib/server/log'
 import { requireEnv } from '$lib/server/platform'
 import { requireRole } from '$lib/server/auth'
+import { PRIMARY_ROLES } from '$lib/parts'
 import { TIER_LABELS, tierOf } from '$lib/roles'
 import type { UserRecord, UserRoles } from '$lib/types'
 import type { RequestHandler } from './$types'
@@ -57,6 +58,9 @@ export const POST: RequestHandler = async (event) => {
   if (password.length < 8) throw error(400, 'Password must be at least 8 characters')
   if (await getUser(env, email)) throw error(409, `${email} already exists`)
 
+  const primaryRole = typeof body.primaryRole === 'string' && body.primaryRole ? body.primaryRole : undefined
+  if (primaryRole && !PRIMARY_ROLES.some((r) => r.key === primaryRole)) throw error(400, 'Unknown primary role')
+
   const requested = (body.roles ?? {}) as Partial<UserRoles>
   const roles: UserRoles = {
     isSuperAdmin: isBootstrap || requested.isSuperAdmin === true,
@@ -76,6 +80,7 @@ export const POST: RequestHandler = async (event) => {
     aliases: Array.isArray(body.aliases) && body.aliases.length
       ? body.aliases.map((a) => String(a).trim()).filter(Boolean)
       : [name.split(' ')[0]],
+    primaryRole,
     createdAt: now,
     updatedAt: now,
     active: true,

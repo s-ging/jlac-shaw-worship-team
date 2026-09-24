@@ -1,12 +1,14 @@
 <script lang="ts">
-  import { partOf, PARTS, userParts } from '$lib/parts'
+  import { partOf, PARTS, primaryChoices, userParts } from '$lib/parts'
   import { rolesForTier, tierOf, TIER_LABELS, type Tier } from '$lib/roles'
   import type { PublicUser } from '$lib/types'
 
   /** Without `user` this creates someone; with it, it edits them. */
-  let { user = null, isSelf = false, onSaved, onCancel } = $props<{
+  let { user = null, isSelf = false, wide = false, onSaved, onCancel } = $props<{
     user?: PublicUser | null
     isSelf?: boolean
+    /** Two columns, for the full-width row under a table entry on PC. */
+    wide?: boolean
     onSaved: () => void | Promise<void>
     onCancel: () => void
   }>()
@@ -34,6 +36,12 @@
   let parts = $state<string[]>(initialParts)
   // Instrument text that isn't a known part ("media", a typo) is kept as-is.
   const otherInstruments = initial?.instruments.filter((i: string) => !partOf(i)) ?? []
+  let primaryRole = $state(initial?.primaryRole ?? '')
+  // Primary is one of the things they do, so it follows the ticks above it.
+  const choices = $derived(primaryChoices(parts, isMedia))
+  $effect(() => {
+    if (primaryRole && !choices.some((c) => c.key === primaryRole)) primaryRole = ''
+  })
   let password = $state('')
   let active = $state(initial?.active ?? true)
 
@@ -52,7 +60,8 @@
     const payload: Record<string, unknown> = {
       name,
       nickname,
-      roles: rolesForTier(tier, isMedia)
+      roles: rolesForTier(tier, isMedia),
+      primaryRole
     }
     // Left blank on create, the server uses their first name.
     if (aliases.length || !creating) payload.aliases = aliases
@@ -86,7 +95,7 @@
   }
 </script>
 
-<form class="user-form" onsubmit={submit}>
+<form class="user-form" class:wide onsubmit={submit}>
   {#if creating}
     <label>
       Email
@@ -120,7 +129,7 @@
         </label>
       {/each}
     </div>
-    <span class="help">Listed first for these slots in the lineup editor. Anyone can still be picked for any slot.</span>
+    <span class="help">The lineup editor lists them for these slots.</span>
   </fieldset>
 
   <fieldset>
@@ -145,6 +154,17 @@
       <span><strong>Media team</strong></span>
     </label>
   </fieldset>
+
+  <label>
+    Primary role
+    <select bind:value={primaryRole} disabled={saving || choices.length === 0}>
+      <option value="">{choices.length ? 'Not set' : 'Tick what they play, or Media, first'}</option>
+      {#each choices as choice (choice.key)}
+        <option value={choice.key}>{choice.label}</option>
+      {/each}
+    </select>
+    <span class="help">What they mainly do in the ministry. Shown on the People list.</span>
+  </label>
 
   <label>
     {creating ? 'Temporary password' : 'New password'}
@@ -206,6 +226,32 @@
     font-size: 12px;
   }
 
+  .user-form.wide {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 28px;
+    padding: 16px 4px 8px;
+  }
+
+  .user-form.wide fieldset,
+  .user-form.wide .error,
+  .user-form.wide .actions {
+    grid-column: 1 / -1;
+  }
+
+  .user-form.wide .parts {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .user-form.wide .actions {
+    justify-content: flex-end;
+  }
+
+  .user-form.wide .actions button {
+    flex: 0 0 160px;
+  }
+
+  select,
   input:not([type='radio']):not([type='checkbox']) {
     font-size: 16px; /* 16px stops iOS Safari zooming on focus */
     padding: 10px;

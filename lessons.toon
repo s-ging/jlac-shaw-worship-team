@@ -9,13 +9,15 @@ working:
   componentForward: "Build components with one job, reused rather than copied. One docked bar (SecondNav), one picker, one lineup view that also edits."
   realData: "Preview with real data (scripts/roster.tsv, the live calendar), never invented people or answers."
 
-components[4]{name,job}:
+components[6]{name,job}:
   Lineup.svelte,"Shows the week's lineup; for admins the same rows turn into dropdowns. Save rules come from missingParts (src/lib/lineup.ts)."
   SecondNav.svelte,"The bar docked above BottomNav on phones. Holds one thing at a time."
   RsvpCard.svelte,"Your answer plus everyone's responses. Docks its buttons in SecondNav when you're assigned."
   BottomNav.svelte,"App navigation. SecondNav assumes its 53px height."
+  admin/People.svelte,"The team for superadmins: ministry and access filters, A–Z sort; a table on PC (900px and up), cards on phones. Edits in place."
+  admin/UserForm.svelte,"Add or edit one person. Two columns with `wide` for the table row. Primary role only offers what they play.""
 
-rules[14]{area,rule}:
+rules[18]{area,rule}:
   editing,"Edit in place: dropdowns replace the names in the same rows. Never open a separate form."
   picker,"List only people marked for the slot's part, under a heading naming it. No 'Everyone else' group. 'Someone else…' lets you type a name."
   picker,"One person, one spot per week. Anyone already placed is hidden from other dropdowns on the same side (band or media)."
@@ -27,6 +29,10 @@ rules[14]{area,rule}:
   rsvp,"No RSVP anywhere in edit mode. Editing is about who's assigned, not who's coming."
   rsvp,"Only people on a week's lineup can answer for it. Everyone else sees the responses, nothing more."
   secondnav,"Dock your RSVP only on weeks you're on the lineup. While editing, SecondNav holds Cancel and Save instead."
+  people,"Mobile first, but PC gets power: a real table with sortable headers, not stretched cards."
+  people,"Filter by ministry part (Vocals, Drums, Guitar, Bass, Keys, Media) and by access (Member, Admin, Superadmin). Filters survive switching widths."
+  people,"Primary role is its own field (UserRecord.primaryRole), not guessed from the first listed part. It must be one of the things they do."
+  preview,"Every screen worth changing gets a /dev/preview page on real roster data, so it can be checked without signing in."
   style,"DM Sans. Deliberate, calm layout; nothing that looks templated."
   data,"The part matrix is scripts/roster.tsv (gitignored, has emails). It must never reach a build or a commit."
   data,"SLOT_PARTS in src/lib/parts.ts (which parts fill which slot) is an assumption, not from the roster. Confirm before relying on it."
