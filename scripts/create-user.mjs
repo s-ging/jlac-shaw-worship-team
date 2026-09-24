@@ -10,21 +10,11 @@
  * Omit --roles for a regular member.
  *
  * This writes to KV rather than calling POST /api/users, so it works with no
- * existing admin account — it is how the first superadmin is created. The
- * password hash is produced here, in Node, which means it could in principle
- * drift from the Workers implementation in $lib/server/crypto. That is why the
- * script finishes by actually logging in: if the formats ever diverge, this
- * fails loudly instead of leaving you with an account that cannot sign in.
+ * existing admin account. It is the break-glass way to get a superadmin back.
+ * The password you give is kept (no forced change), since you chose it yourself.
+ * For the whole team at once, use import-users.mjs.
  */
-import { execFileSync } from 'node:child_process'
-import { webcrypto as crypto } from 'node:crypto'
-
-const SITE = process.env.SITE_URL ?? 'https://jlac-shaw-worship-team.pages.dev'
-
-// Must stay in step with src/lib/server/crypto.ts
-const ITERATIONS = 10_000
-const KEY_BITS = 256
-const SALT_BYTES = 16
+import { hashPassword, putUsers, rolesFor, SITE, trySignIn } from './lib/users.mjs'
 
 const args = process.argv.slice(2)
 const flags = args.filter((a) => a.startsWith('--'))
@@ -44,20 +34,12 @@ const roleList = (flags.find((f) => f.startsWith('--roles='))?.slice('--roles='.
   .map((r) => r.trim().toLowerCase())
   .filter(Boolean)
 
-const toBase64 = (bytes) => Buffer.from(bytes).toString('base64')
-
-async function hashPassword(plain) {
-  const salt = crypto.getRandomValues(new Uint8Array(SALT_BYTES))
-  const material = await crypto.subtle.importKey('raw', new TextEncoder().encode(plain), 'PBKDF2', false, [
-    'deriveBits'
-  ])
-  const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt, iterations: ITERATIONS, hash: 'SHA-256' },
-    material,
-    KEY_BITS
-  )
-  return `pbkdf2$${ITERATIONS}$${toBase64(salt)}$${toBase64(new Uint8Array(bits))}`
-}
+// 'leader' is the old name for admin, still accepted.
+const access = roleList.includes('superadmin')
+  ? 'superadmin'
+  : roleList.includes('admin') || roleList.includes('leader')
+    ? 'admin'
+    : 'member'
 
 const normalized = email.trim().toLowerCase()
 const now = new Date().toISOString()
@@ -66,13 +48,7 @@ const user = {
   email: normalized,
   name: name.trim(),
   passwordHash: await hashPassword(password),
-  roles: {
-    isSuperAdmin: roleList.includes('superadmin'),
-    // 'leader' is the old name for admin, still accepted.
-    isWorshipLeader: ['superadmin', 'admin', 'leader'].some((r) => roleList.includes(r)),
-    isMedia: roleList.includes('media'),
-    isMember: true
-  },
+  roles: rolesFor(access, roleList.includes('media')),
   instruments: [],
   aliases: [name.trim().split(' ')[0]],
   createdAt: now,
@@ -81,33 +57,15 @@ const user = {
 }
 
 console.log(`Writing user:${normalized} to production USERS_KV...`)
-execFileSync(
-  'npx',
-  [
-    'wrangler', 'kv', 'key', 'put',
-    '--binding=USERS_KV',
-    `user:${normalized}`,
-    JSON.stringify(user),
-    '--remote',
-    '--preview', 'false'
-  ],
-  { stdio: ['ignore', 'ignore', 'inherit'], shell: process.platform === 'win32' }
-)
+putUsers([user])
 
 console.log(`Verifying by signing in at ${SITE} ...`)
-const res = await fetch(`${SITE}/api/auth/login`, {
-  method: 'POST',
-  headers: { 'content-type': 'application/json' },
-  body: JSON.stringify({ email: normalized, password })
-})
-
-if (res.ok) {
-  const body = await res.json()
-  console.log(`\nOK — ${body.user.name} <${body.user.email}> can sign in.`)
-  console.log(`   roles: ${Object.entries(body.user.roles).filter(([, v]) => v).map(([k]) => k).join(', ')}`)
+const status = await trySignIn(normalized, password)
+if (status === 200) {
+  console.log(`\nOK: ${user.name} <${normalized}> can sign in as ${access}.`)
 } else {
-  console.error(`\nFAILED — user written but login returned ${res.status}.`)
+  console.error(`\nFAILED: user written but login returned ${status}.`)
   console.error('   If the site has not deployed the current code yet, retry in a minute.')
-  console.error('   If it persists, the hash format here has drifted from src/lib/server/crypto.ts.')
+  console.error('   If it persists, the hash format in scripts/lib/users.mjs has drifted from src/lib/server/crypto.ts.')
   process.exit(1)
 }

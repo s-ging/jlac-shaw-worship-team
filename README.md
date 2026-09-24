@@ -22,6 +22,20 @@ editing and a changelog.
 temporary password and send it to them yourself. "Name in the calendar" must match
 how the schedule writes their name (e.g. `Kevin`).
 
+**Add many people at once.** Put them in `scripts/roster.tsv` (gitignored; the
+column format is at the top of `scripts/import-users.mjs`), then:
+
+```sh
+node scripts/import-users.mjs scripts/roster.tsv --password=<starting password>        # dry run
+node scripts/import-users.mjs scripts/roster.tsv --password=<starting password> --yes  # create
+```
+
+Existing accounts are skipped, never overwritten, so rerun it after adding rows.
+
+**First sign-in.** Anyone whose password someone else set (new accounts, resets)
+is sent to **Me** to choose their own before they can use the app. Everyone can
+change their password and nickname under **Me** any time.
+
 **Reset a password.** **Admin** → **Edit** on the person → type a new password → Save.
 There is no self-serve reset.
 

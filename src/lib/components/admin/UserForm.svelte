@@ -131,7 +131,7 @@
       autocomplete="off"
       disabled={saving}
     />
-    <span class="help">At least 8 characters. Send it to them yourself.</span>
+    <span class="help">At least 8 characters. Send it to them yourself; they'll choose their own the first time they sign in.</span>
   </label>
 
   {#if !creating}

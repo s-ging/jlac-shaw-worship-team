@@ -5,15 +5,15 @@
 </script>
 
 <nav class="bottom-nav">
-  <button class="nav-item {active === 'calendar' ? 'active' : ''}">
+  <a href="/" class="nav-item {active === 'calendar' ? 'active' : ''}">
     📅 Calendar
-  </button>
+  </a>
   <button class="nav-item {active === 'music' ? 'active' : ''}">
     🎵 Music
   </button>
-  <button class="nav-item {active === 'me' ? 'active' : ''}">
+  <a href="/me" class="nav-item {active === 'me' ? 'active' : ''}">
     👤 Me
-  </button>
+  </a>
 </nav>
 
 <style>
@@ -33,6 +33,8 @@
   }
 
   .nav-item {
+    display: flex;
+    align-items: center;
     background: none;
     border: none;
     font-size: 14px;
@@ -40,6 +42,7 @@
     color: #999;
     cursor: pointer;
     font-weight: 500;
+    text-decoration: none;
     touch-action: manipulation;
     min-height: 44px;
     min-width: 44px;

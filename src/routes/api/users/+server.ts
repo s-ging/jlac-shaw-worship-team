@@ -78,7 +78,9 @@ export const POST: RequestHandler = async (event) => {
       : [name.split(' ')[0]],
     createdAt: now,
     updatedAt: now,
-    active: true
+    active: true,
+    // The creator picked this password, so the new user replaces it on first sign-in.
+    mustChangePassword: !isBootstrap
   }
 
   await putUser(env, user)

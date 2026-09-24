@@ -62,6 +62,12 @@ export interface UserRecord {
   createdAt: string
   updatedAt: string
   active: boolean
+  /**
+   * Set when someone else chose the password: a new account on the team's
+   * shared starting password, or a reset. The app sends them to /me to pick
+   * their own before anything else.
+   */
+  mustChangePassword?: boolean
 }
 
 /** A user record with secrets stripped. This is the only shape the client sees. */

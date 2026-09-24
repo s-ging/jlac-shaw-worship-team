@@ -78,6 +78,8 @@ export const PATCH: RequestHandler = async (event) => {
   if (typeof body.password === 'string' && body.password) {
     if (body.password.length < 8) throw error(400, 'Password must be at least 8 characters')
     next.passwordHash = await hashPassword(body.password)
+    // A reset hands them a temporary password; they choose their own on next sign-in.
+    next.mustChangePassword = email !== normalizeEmail(actor.email)
     changes.push('reset password')
   }
 
