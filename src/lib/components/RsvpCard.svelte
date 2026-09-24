@@ -10,14 +10,17 @@
     user,
     rsvps = $bindable({}),
     people = $bindable({}),
-    docked = true
+    assigned = false
   }: {
     weekId: string
     user: PublicUser | null
     rsvps?: Record<string, RsvpRecord>
     people?: Record<string, RsvpPerson>
-    /** On phones the buttons dock above the nav. Off while the lineup's Save bar has the spot. */
-    docked?: boolean
+    /**
+     * On this week's lineup. Only they answer; everyone else just sees who's
+     * coming. On phones their buttons dock above the nav (SecondNav).
+     */
+    assigned?: boolean
   } = $props()
 
   const OPTIONS: { status: RsvpStatus; label: string; icon: string }[] = [
@@ -120,18 +123,22 @@
   }
 </script>
 
-<section class="rsvp" class:docked>
+<section class="rsvp" class:docked={assigned}>
   <h3 class="title">
-    <span class="ask">Can you make it?</span>
-    <span class="docked-title">Responses</span>
+    {#if user && assigned}
+      <span class="ask">Can you make it?</span>
+      <span class="docked-title">Responses</span>
+    {:else}
+      Responses
+    {/if}
   </h3>
 
   {#if !user}
     <p class="signed-out">
       <a href="/login">Sign in</a> to RSVP for this week.
     </p>
-  {:else}
-    <SecondNav label="Your RSVP{dateLabel ? ` for ${dateLabel}` : ''}" {docked}>
+  {:else if assigned}
+    <SecondNav label="Your RSVP{dateLabel ? ` for ${dateLabel}` : ''}">
       <div class="dock">
         <span class="dock-label" aria-hidden="true">
           <span class="dock-date">{dateLabel}</span>
@@ -153,7 +160,9 @@
         </div>
       </div>
     </SecondNav>
+  {/if}
 
+  {#if user}
     {#if error}
       <p class="error" role="alert">{error}</p>
     {/if}
@@ -171,7 +180,7 @@
         {/each}
       </ul>
     {:else}
-      <p class="muted">No responses yet. Be the first.</p>
+      <p class="muted">No responses yet.{assigned ? ' Be the first.' : ''}</p>
     {/if}
   {/if}
 </section>

@@ -174,6 +174,30 @@ export function isServiceEvent(event: { summary?: string; description?: string }
   return /week'?s theme/i.test(event.summary ?? '')
 }
 
+// ---- Checking ----
+
+export type Requirement = 'praiseleader' | 'secondvocal' | 'drums' | 'guitar' | 'media'
+
+/**
+ * What a week still needs before it can be saved: a Praise Leader, one more
+ * vocalist in any other vocal slot, Drums, a guitarist (L. or R. Guitar; Bass
+ * doesn't count) and at least one Media person. The editor keeps Save off
+ * until this is empty, and the server refuses anything it isn't.
+ */
+export function missingParts(lineup: Lineup): { key: Requirement; text: string }[] {
+  const filled = lineup.slots.filter((s) => s.name.trim())
+  const keys = new Set(filled.map((s) => labelKey(s.label)))
+  const missing: { key: Requirement; text: string }[] = []
+  if (!keys.has('praiseleader')) missing.push({ key: 'praiseleader', text: 'Praise Leader' })
+  if (!filled.some((s) => s.section === 'vocalists' && labelKey(s.label) !== 'praiseleader')) {
+    missing.push({ key: 'secondvocal', text: 'a second vocalist' })
+  }
+  if (!keys.has('drums')) missing.push({ key: 'drums', text: 'Drums' })
+  if (!keys.has('lguitar') && !keys.has('rguitar')) missing.push({ key: 'guitar', text: 'a guitarist' })
+  if (!lineup.media.trim()) missing.push({ key: 'media', text: 'Media' })
+  return missing
+}
+
 // ---- Comparing ----
 
 function slotMap(lineup: Lineup): Map<string, { label: string; name: string }> {

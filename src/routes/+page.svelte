@@ -212,7 +212,7 @@
       {/if}
       <!-- Editing is about who's assigned, not who's coming, so no RSVP while it's open. -->
       {#if !editingLineup}
-        <RsvpCard weekId={currentWeek.service_date} user={data.user} bind:rsvps bind:people docked={assigned} />
+        <RsvpCard weekId={currentWeek.service_date} user={data.user} bind:rsvps bind:people {assigned} />
       {/if}
     {/if}
 

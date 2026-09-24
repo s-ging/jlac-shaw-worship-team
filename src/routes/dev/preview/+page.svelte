@@ -152,7 +152,7 @@
       <Lineup eventId={serviceDate} {description} canEdit={canEditSchedule(viewer)} {rsvps} {people} onSaved={() => {}} bind:editing={editingLineup} />
     {/key}
     {#if !editingLineup}
-      <RsvpCard weekId={serviceDate} user={viewer} bind:rsvps bind:people docked={assigned} />
+      <RsvpCard weekId={serviceDate} user={viewer} bind:rsvps bind:people {assigned} />
     {/if}
 
     <details>

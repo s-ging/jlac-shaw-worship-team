@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { editorSlots, extractLineup, labelKey, PRESET_SLOTS, type Lineup, type LineupSection, type LineupSlot } from '$lib/lineup'
+  import { editorSlots, extractLineup, labelKey, missingParts, PRESET_SLOTS, type Requirement, type Lineup, type LineupSection, type LineupSlot } from '$lib/lineup'
   import { calendarName, joinNames, matchByNames, matchUser, PARTS, slotParts, splitNames, userParts } from '$lib/parts'
   import type { PublicUser, RsvpPerson, RsvpRecord, RsvpStatus } from '$lib/types'
   import SecondNav from './SecondNav.svelte'
@@ -177,26 +177,27 @@
 
   // ---- What a week needs before it can be saved ----
 
-  const filledKeys = $derived(new Set(rows.filter((r) => r.name.trim()).map((r) => labelKey(labelOf(r)))))
-  const hasGuitar = $derived(filledKeys.has('lguitar') || filledKeys.has('rguitar'))
-  const hasMedia = $derived(mediaRows.some((p) => p.name.trim()))
+  /** The lineup as it would be saved right now. */
+  function draft(): Lineup {
+    return {
+      slots: rows
+        .filter((r) => (r.custom ? r.part.trim() : r.label.trim()))
+        .map((r) => ({ section: r.section, label: labelOf(r).trim(), name: r.name.trim() })),
+      media: mediaText().trim()
+    }
+  }
 
-  const missing = $derived(
-    [
-      !filledKeys.has('praiseleader') && 'Praise Leader',
-      !filledKeys.has('secondpraiseleader') && 'Second Praise Leader',
-      !filledKeys.has('drums') && 'Drums',
-      !hasGuitar && 'a guitarist',
-      !hasMedia && 'Media'
-    ].filter((m): m is string => Boolean(m))
-  )
+  const missing = $derived(editing ? missingParts(draft()) : [])
+  const needs = $derived(new Set<Requirement>(missing.map((m) => m.key)))
 
-  /** Highlights the empty rows that are holding up saving. */
+  /** Highlights the empty rows that could fill what's holding up saving. */
   function isMissing(row: Row): boolean {
     if (row.name.trim()) return false
     const key = labelKey(labelOf(row))
-    if (key === 'lguitar' || key === 'rguitar') return !hasGuitar
-    return ['praiseleader', 'secondpraiseleader', 'drums'].includes(key)
+    if (key === 'praiseleader') return needs.has('praiseleader')
+    if (row.section === 'vocalists') return needs.has('secondvocal')
+    if (key === 'drums') return needs.has('drums')
+    return (key === 'lguitar' || key === 'rguitar') && needs.has('guitar')
   }
 
   /**
@@ -261,12 +262,7 @@
     saving = true
     error = null
 
-    const after: Lineup = {
-      slots: rows
-        .filter((r) => (r.custom ? r.part.trim() : r.label.trim()))
-        .map((r) => ({ section: r.section, label: labelOf(r).trim(), name: r.name.trim() })),
-      media: mediaText().trim()
-    }
+    const after = draft()
 
     try {
       const res = await fetch(`/api/events/${encodeURIComponent(eventId)}/lineup`, {
@@ -373,7 +369,7 @@
           {/each}
         {:else}
           {#each mediaRows as pick, i (i)}
-            <div class="row" class:missing={i === 0 && !hasMedia}>
+            <div class="row" class:missing={i === 0 && needs.has('media')}>
               <label class="role" for="media-{i}">📹 Media</label>
               {@render picker(pick, `media-${i}`, mediaGroupsFor(pick), () => (mediaTouched = true))}
             </div>
@@ -452,7 +448,7 @@
       <SecondNav label="Save lineup" sticky>
         <div class="actions">
           {#if missing.length > 0}
-            <p class="needed">Still needed: {missing.join(', ')}</p>
+            <p class="needed">Still needed: {missing.map((m) => m.text).join(', ')}</p>
           {/if}
           <button type="button" class="cancel" onclick={() => (editing = false)} disabled={saving}>Cancel</button>
           <button type="submit" class="save" disabled={saving || missing.length > 0}>{saving ? 'Saving…' : 'Save to calendar'}</button>

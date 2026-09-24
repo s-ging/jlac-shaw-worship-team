@@ -1,6 +1,6 @@
 import { error, json } from '@sveltejs/kit'
 import { format, parseISO } from 'date-fns'
-import { diffLineup, extractLineup, sameLineup, writeLineup, type Lineup, type LineupChange, type LineupSlot } from '$lib/lineup'
+import { diffLineup, extractLineup, missingParts, sameLineup, writeLineup, type Lineup, type LineupChange, type LineupSlot } from '$lib/lineup'
 import { requireRole } from '$lib/server/auth'
 import { getEvent, patchDescription } from '$lib/server/google'
 import { appendLog } from '$lib/server/log'
@@ -53,6 +53,9 @@ export const PUT: RequestHandler = async (event) => {
   }
   const before = readLineup(body.before)
   const after = readLineup(body.after)
+
+  const missing = missingParts(after)
+  if (missing.length > 0) throw error(400, `Still needed: ${missing.map((m) => m.text).join(', ')}`)
 
   const conflict = () =>
     error(409, 'Someone else changed this week while you were editing. Reload to see the latest, then try again.')

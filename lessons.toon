@@ -1,0 +1,40 @@
+# Lessons from the lineup editor rework, 2026-09-24. Read before any UI work.
+# Format: TOON (Token-Oriented Object Notation). Tables are name[count]{fields}: then one row per line.
+
+purpose: Product and UX rules the team lead had to point out. Apply them without being told.
+
+working:
+  askFirst: "Ask about ambiguous product rules before building. A few quick questions beat a round of corrections."
+  thinkAhead: "Before shipping a screen, walk it as each role (member, admin, media) on a phone and on desktop, in view and edit mode."
+  componentForward: "Build components with one job, reused rather than copied. One docked bar (SecondNav), one picker, one lineup view that also edits."
+  realData: "Preview with real data (scripts/roster.tsv, the live calendar), never invented people or answers."
+
+components[4]{name,job}:
+  Lineup.svelte,"Shows the week's lineup; for admins the same rows turn into dropdowns. Save rules come from missingParts (src/lib/lineup.ts)."
+  SecondNav.svelte,"The bar docked above BottomNav on phones. Holds one thing at a time."
+  RsvpCard.svelte,"Your answer plus everyone's responses. Docks its buttons in SecondNav when you're assigned."
+  BottomNav.svelte,"App navigation. SecondNav assumes its 53px height."
+
+rules[14]{area,rule}:
+  editing,"Edit in place: dropdowns replace the names in the same rows. Never open a separate form."
+  picker,"List only people marked for the slot's part, under a heading naming it. No 'Everyone else' group. 'Someone else…' lets you type a name."
+  picker,"One person, one spot per week. Anyone already placed is hidden from other dropdowns on the same side (band or media)."
+  picker,"Picking someone from the other side moves them (Chan: Media to Bass). No 'moves from' note."
+  save,"Save needs a Praise Leader, one more vocalist in any other vocal slot, Drums, a guitarist (L. or R. Guitar) and Media. One rule, missingParts in src/lib/lineup.ts: the editor keeps Save off and the server rejects the rest."
+  parts,"New parts pick an emoji separately from the name, so every label starts with one. Keys is an optional preset, not a standard slot."
+  media,"Media is dropdown rows plus '+ Add media team'. No chips, no free-text box."
+  rsvp,"Show each assigned person's answer next to their name: ✅ yes, 🤔 maybe, ❌ no, grey dash for no answer."
+  rsvp,"No RSVP anywhere in edit mode. Editing is about who's assigned, not who's coming."
+  rsvp,"Only people on a week's lineup can answer for it. Everyone else sees the responses, nothing more."
+  secondnav,"Dock your RSVP only on weeks you're on the lineup. While editing, SecondNav holds Cancel and Save instead."
+  style,"DM Sans. Deliberate, calm layout; nothing that looks templated."
+  data,"The part matrix is scripts/roster.tsv (gitignored, has emails). It must never reach a build or a commit."
+  data,"SLOT_PARTS in src/lib/parts.ts (which parts fill which slot) is an assumption, not from the roster. Confirm before relying on it."
+
+answered[3]{question,answer}:
+  "Does 'backup' in the save rule mean the Second Praise Leader slot?","No: any second vocalist, in any vocal slot"
+  "Should people not on a week's lineup be able to RSVP for it?","No: they only see the responses"
+  "Should the server reject incomplete lineups too?","Yes: the lineup endpoint checks missingParts"
+
+openQuestions[1]{question,currentAnswer}:
+  "Should the RSVP endpoint also refuse answers from people not on the lineup?","Not yet: only the app hides the buttons"
