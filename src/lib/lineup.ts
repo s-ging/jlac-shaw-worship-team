@@ -38,6 +38,9 @@ export const STANDARD_SLOTS: ReadonlyArray<Omit<LineupSlot, 'name'>> = [
   { section: 'instrumentalists', label: '🎸 Bass' }
 ]
 
+/** Optional slots the editor offers under "Add instrument", for weeks that have them. */
+export const PRESET_SLOTS: ReadonlyArray<Omit<LineupSlot, 'name'>> = [{ section: 'instrumentalists', label: '🎹 Keys' }]
+
 /**
  * What an empty week's description starts as: the skeleton the team fills in by
  * hand. Future weeks are bare recurring-event instances with no description at

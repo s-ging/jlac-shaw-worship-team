@@ -2,7 +2,7 @@
   import { onMount } from 'svelte'
   import { format } from 'date-fns'
   import { fetchMonthEvents, processEvent, extractMonthlyTheme } from '$lib/google-calendar'
-  import type { WeekWithDetails } from '$lib/types'
+  import type { RsvpPerson, RsvpRecord, WeekWithDetails } from '$lib/types'
 
   import MonthHeader from '$lib/components/MonthHeader.svelte'
   import WeekNavigator from '$lib/components/WeekNavigator.svelte'
@@ -12,8 +12,9 @@
   import LoadingState from '$lib/components/LoadingState.svelte'
   import ErrorState from '$lib/components/ErrorState.svelte'
   import RsvpCard from '$lib/components/RsvpCard.svelte'
-  import LineupEditor from '$lib/components/LineupEditor.svelte'
-  import { isServiceEvent } from '$lib/lineup'
+  import Lineup from '$lib/components/Lineup.svelte'
+  import { extractLineup, isServiceEvent } from '$lib/lineup'
+  import { isNamed, lineupNames } from '$lib/parts'
   import { canEditSchedule } from '$lib/roles'
 
   // Auth state comes from +layout.server.ts, so it is known at first paint.
@@ -31,6 +32,37 @@
   let selectedWeekIndex = $state(0)
 
   let currentWeek = $derived(weeks[selectedWeekIndex] || null)
+
+  // Filled by RsvpCard; the lineup ticks the names of people who answered.
+  // The lineup's Save bar takes the docked spot from the RSVP buttons while editing.
+  let editingLineup = $state(false)
+  // A different week, or no editor shown for it, means no edit in progress.
+  $effect(() => {
+    void currentWeek
+    editingLineup = false
+  })
+  let rsvps = $state<Record<string, RsvpRecord>>({})
+  let people = $state<Record<string, RsvpPerson>>({})
+
+  /**
+   * The lineup is read from the service event, which is also what the editor
+   * writes. Weeks without a lineup there fall back to whatever the other events
+   * on that date list, unless an editor is about to fill it in.
+   */
+  /** Whether you're on this week's lineup. Only then does your RSVP dock above the nav. */
+  const assigned = $derived.by(() => {
+    if (!data.user || !currentWeek) return false
+    const names = useServiceLineup
+      ? lineupNames(extractLineup(currentWeek.service_description))
+      : currentWeek.assignments.map((a) => a.profile?.name ?? '')
+    return isNamed(data.user, names)
+  })
+
+  const useServiceLineup = $derived.by(() => {
+    if (!currentWeek?.google_event_id) return false
+    const lineup = extractLineup(currentWeek.service_description)
+    return canEdit || lineup.slots.length > 0 || lineup.media.trim() !== ''
+  })
 
   // ---- Main load: fetch from Google Calendar (display only, nothing persisted) ----
   /**
@@ -149,7 +181,7 @@
     </div>
   </div>
 {:else}
-  <div class="container">
+  <div class="container" class:docked={assigned || editingLineup}>
     <MonthHeader
       {monthName}
       {monthTheme}
@@ -165,15 +197,23 @@
 
     {#if currentWeek}
       <WeekDetails week={currentWeek} />
-      <AssignmentList week={currentWeek} />
-      {#if canEdit && currentWeek.google_event_id}
-        <LineupEditor
+      {#if useServiceLineup && currentWeek.google_event_id}
+        <Lineup
           eventId={currentWeek.google_event_id}
           description={currentWeek.service_description ?? ''}
+          {canEdit}
+          {rsvps}
+          {people}
           onSaved={() => loadMonth(currentWeek.service_date)}
+          bind:editing={editingLineup}
         />
+      {:else}
+        <AssignmentList week={currentWeek} />
       {/if}
-      <RsvpCard weekId={currentWeek.service_date} user={data.user} />
+      <!-- Editing is about who's assigned, not who's coming, so no RSVP while it's open. -->
+      {#if !editingLineup}
+        <RsvpCard weekId={currentWeek.service_date} user={data.user} bind:rsvps bind:people docked={assigned} />
+      {/if}
     {/if}
 
     <BottomNav active="calendar" />
@@ -186,6 +226,13 @@
     margin: 0 auto;
     padding: 16px 12px 80px 12px;
     min-height: 100svh;
+  }
+
+  /* Clears the docked SecondNav and the bottom nav. */
+  @media (max-width: 640px) {
+    .container.docked {
+      padding-bottom: 150px;
+    }
   }
 
   .empty-box {

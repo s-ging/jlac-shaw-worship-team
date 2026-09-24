@@ -1,10 +1,11 @@
-import { labelKey, labelText } from '$lib/lineup'
+import { labelKey, labelText, type Lineup } from '$lib/lineup'
 import type { PublicUser } from '$lib/types'
 
 /**
  * The parts people play, and which lineup slots each one qualifies them for.
- * Drives the lineup editor's dropdowns: qualified people are listed first.
- * Anyone can still be picked for any slot, so this orders, it never blocks.
+ * Drives the lineup editor's dropdowns, which list only qualified people.
+ * Anyone can still be typed in with "Someone else…", so this filters the list
+ * without ever blocking a pick.
  *
  * `UserRecord.instruments` is free text, since the roster was typed by hand
  * ("lead vocal, backup", "drum"). `partOf` maps those strings onto these parts.
@@ -64,7 +65,7 @@ export function calendarName(user: PublicUser): string {
 }
 
 /** Names that identify a person in the calendar, lowercased: calendar names, nickname, first name. */
-function namesOf(user: PublicUser): string[] {
+export function namesOf(user: PublicUser): string[] {
   return [...user.aliases, user.nickname ?? '', user.name.split(' ')[0]].map((n) => n.trim().toLowerCase()).filter(Boolean)
 }
 
@@ -74,10 +75,30 @@ function namesOf(user: PublicUser): string[] {
  * answering to "Kevin") resolve to nobody rather than to a guess.
  */
 export function matchUser(name: string, users: PublicUser[]): PublicUser | null {
-  const wanted = name.replace(/\([^)]*\)/g, '').trim().toLowerCase()
+  return matchByNames(name, users, namesOf)
+}
+
+/** A calendar name as matched against `namesOf`: notes in parentheses dropped, lowercased. */
+export function nameKey(name: string): string {
+  return name.replace(/\([^)]*\)/g, '').trim().toLowerCase()
+}
+
+/** `matchUser` for anything that knows its names. The one unambiguous hit, or null. */
+export function matchByNames<T>(name: string, candidates: T[], names: (c: T) => string[]): T | null {
+  const wanted = nameKey(name)
   if (!wanted) return null
-  const hits = users.filter((u) => namesOf(u).includes(wanted))
+  const hits = candidates.filter((c) => names(c).includes(wanted))
   return hits.length === 1 ? hits[0] : null
+}
+
+/** True if any of these calendar names means `user`. */
+export function isNamed(user: PublicUser, names: string[]): boolean {
+  return names.some((name) => matchByNames(name, [user], namesOf) !== null)
+}
+
+/** Every name on a lineup: each slot's person, then media. */
+export function lineupNames(lineup: Lineup): string[] {
+  return [...lineup.slots.map((s) => s.name.trim()).filter(Boolean), ...splitNames(lineup.media)]
 }
 
 /** "Sam and Chan", "Sam, Chan & Jo" → ["Sam", "Chan", "Jo"]. */

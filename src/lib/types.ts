@@ -92,6 +92,14 @@ export interface RsvpRecord {
   updatedBy: string
 }
 
+/** Who an RSVP responder is, in the names the calendar uses. */
+export interface RsvpPerson {
+  /** How the calendar writes them: "Jean". */
+  name: string
+  /** Every name that means them, lowercased (see `namesOf`). */
+  names: string[]
+}
+
 /** One changelog line. Written by $lib/server/log. */
 export interface LogEntry {
   id: string

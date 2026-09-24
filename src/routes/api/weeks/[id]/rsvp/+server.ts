@@ -1,18 +1,33 @@
 import { error, json } from '@sveltejs/kit'
-import { getRsvp, listRsvpsForWeek, normalizeEmail, putRsvp } from '$lib/server/kv'
+import { getRsvp, listRsvpsForWeek, listUsers, normalizeEmail, putRsvp, toPublicUser } from '$lib/server/kv'
 import { requireEnv } from '$lib/server/platform'
 import { requireAuth } from '$lib/server/auth'
 import { appendLog } from '$lib/server/log'
-import type { RsvpStatus } from '$lib/types'
+import { calendarName, namesOf } from '$lib/parts'
+import type { RsvpPerson, RsvpStatus } from '$lib/types'
 import type { RequestHandler } from './$types'
 
 const STATUSES: RsvpStatus[] = ['yes', 'maybe', 'no']
 
-/** Everyone's RSVP for one week. Readable by anyone signed in. */
+/**
+ * Everyone's RSVP for one week. Readable by anyone signed in. `people` says who
+ * each responder is in calendar terms, so the lineup can show a tick next to
+ * their name. Only responders are included, not the whole roster.
+ */
 export const GET: RequestHandler = async (event) => {
   requireAuth(event)
-  const rsvps = await listRsvpsForWeek(requireEnv(event.platform), event.params.id)
-  return json({ rsvps })
+  const env = requireEnv(event.platform)
+  const [rsvps, users] = await Promise.all([listRsvpsForWeek(env, event.params.id), listUsers(env)])
+
+  const people: Record<string, RsvpPerson> = {}
+  for (const user of users) {
+    const email = normalizeEmail(user.email)
+    if (!rsvps[email]) continue
+    const pub = toPublicUser(user)
+    people[email] = { name: calendarName(pub), names: namesOf(pub) }
+  }
+
+  return json({ rsvps, people })
 }
 
 /**

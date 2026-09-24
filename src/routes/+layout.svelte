@@ -64,7 +64,7 @@
     min-height: 100svh;
     display: flex;
     flex-direction: column;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-family);
   }
 
   .app-header {
