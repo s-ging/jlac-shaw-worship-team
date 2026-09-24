@@ -1,0 +1,260 @@
+<script lang="ts">
+  import { rolesForTier, tierOf, TIER_LABELS, type Tier } from '$lib/roles'
+  import type { PublicUser } from '$lib/types'
+
+  /** Without `user` this creates someone; with it, it edits them. */
+  let { user = null, isSelf = false, onSaved, onCancel } = $props<{
+    user?: PublicUser | null
+    isSelf?: boolean
+    onSaved: () => void | Promise<void>
+    onCancel: () => void
+  }>()
+
+  const TIERS: { tier: Tier; hint: string }[] = [
+    { tier: 'member', hint: 'Sees the schedule, RSVPs for themselves' },
+    { tier: 'admin', hint: 'Song leader: edits lineups, RSVPs for others, sees the log' },
+    { tier: 'superadmin', hint: 'Everything, plus adding people and changing access' }
+  ]
+
+  // The form edits a copy. `user` is only read once, when the form opens.
+  // svelte-ignore state_referenced_locally
+  const initial = user
+  const creating = !initial
+
+  let email = $state('')
+  let name = $state(initial?.name ?? '')
+  let nickname = $state(initial?.nickname ?? '')
+  let calendarNames = $state(initial?.aliases.join(', ') ?? '')
+  let tier = $state<Tier>(initial ? tierOf(initial.roles) : 'member')
+  let isMedia = $state(initial?.roles.isMedia ?? false)
+  let password = $state('')
+  let active = $state(initial?.active ?? true)
+
+  let saving = $state(false)
+  let error = $state<string | null>(null)
+
+  const splitList = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean)
+
+  async function submit(e: SubmitEvent) {
+    e.preventDefault()
+    if (saving) return
+    saving = true
+    error = null
+
+    const aliases = splitList(calendarNames)
+    const payload: Record<string, unknown> = {
+      name,
+      nickname,
+      roles: rolesForTier(tier, isMedia)
+    }
+    // Left blank on create, the server uses their first name.
+    if (aliases.length || !creating) payload.aliases = aliases
+    if (password) payload.password = password
+    if (creating) payload.email = email
+    else payload.active = active
+
+    try {
+      const res = await fetch(creating ? '/api/users' : `/api/users/${encodeURIComponent(initial!.email)}`, {
+        method: creating ? 'POST' : 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => null)
+        error = body?.message ?? 'Could not save. Please try again.'
+        return
+      }
+      await onSaved()
+    } catch {
+      error = 'Network error. Check your connection and try again.'
+    } finally {
+      saving = false
+    }
+  }
+</script>
+
+<form class="user-form" onsubmit={submit}>
+  {#if creating}
+    <label>
+      Email
+      <input type="email" bind:value={email} required inputmode="email" autocomplete="off" disabled={saving} />
+    </label>
+  {/if}
+
+  <label>
+    Full name
+    <input bind:value={name} required autocomplete="off" disabled={saving} />
+  </label>
+
+  <label>
+    Nickname <span class="optional">(optional)</span>
+    <input bind:value={nickname} autocomplete="off" disabled={saving} />
+  </label>
+
+  <label>
+    Name in the calendar
+    <input bind:value={calendarNames} placeholder="e.g. Kevin, Koya Kevin" autocomplete="off" disabled={saving} />
+    <span class="help">How the schedule writes their name. Separate several with commas.</span>
+  </label>
+
+  <fieldset>
+    <legend>Access</legend>
+    {#each TIERS as option (option.tier)}
+      <label class="choice">
+        <input
+          type="radio"
+          name="tier"
+          value={option.tier}
+          bind:group={tier}
+          disabled={saving || (isSelf && option.tier !== 'superadmin')}
+        />
+        <span>
+          <strong>{TIER_LABELS[option.tier]}</strong>
+          <span class="help">{option.hint}</span>
+        </span>
+      </label>
+    {/each}
+    <label class="choice">
+      <input type="checkbox" bind:checked={isMedia} disabled={saving} />
+      <span><strong>Media team</strong></span>
+    </label>
+  </fieldset>
+
+  <label>
+    {creating ? 'Temporary password' : 'New password'}
+    {#if !creating}<span class="optional">(leave blank to keep)</span>{/if}
+    <input
+      type="text"
+      bind:value={password}
+      required={creating}
+      minlength="8"
+      autocomplete="off"
+      disabled={saving}
+    />
+    <span class="help">At least 8 characters. Send it to them yourself.</span>
+  </label>
+
+  {#if !creating}
+    <label class="choice">
+      <input type="checkbox" bind:checked={active} disabled={saving || isSelf} />
+      <span>
+        <strong>Active</strong>
+        <span class="help">Unchecking signs them out and stops them signing in.</span>
+      </span>
+    </label>
+  {/if}
+
+  {#if error}
+    <p class="error" role="alert">{error}</p>
+  {/if}
+
+  <div class="actions">
+    <button type="button" class="cancel" onclick={onCancel} disabled={saving}>Cancel</button>
+    <button type="submit" class="save" disabled={saving}>{saving ? 'Saving…' : creating ? 'Add person' : 'Save'}</button>
+  </div>
+</form>
+
+<style>
+  .user-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-top: 12px;
+  }
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .optional,
+  .help {
+    font-weight: 400;
+    color: var(--color-text-secondary);
+  }
+
+  .help {
+    font-size: 12px;
+  }
+
+  input:not([type='radio']):not([type='checkbox']) {
+    font-size: 16px; /* 16px stops iOS Safari zooming on focus */
+    padding: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: white;
+  }
+
+  fieldset {
+    border: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  legend {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .choice {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 10px;
+    font-weight: 400;
+    font-size: 14px;
+  }
+
+  .choice > span {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .choice input {
+    margin-top: 3px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .error {
+    font-size: 14px;
+    color: #b42318;
+    background: #fef3f2;
+    border: 1px solid #fecdca;
+    border-radius: var(--radius);
+    padding: 10px 12px;
+  }
+
+  .actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .actions button {
+    flex: 1;
+    min-height: 44px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: var(--radius);
+  }
+
+  .cancel {
+    background: white;
+    border: 1px solid var(--color-border);
+  }
+
+  .save {
+    background: var(--color-primary);
+    border: none;
+    color: white;
+  }
+
+  button:disabled {
+    opacity: 0.55;
+  }
+</style>

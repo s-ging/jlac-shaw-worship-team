@@ -1,42 +1,68 @@
-# sv
+# Praise Team Scheduler
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+The JLAC Shaw worship team's schedule, RSVPs and lineups. Google Calendar is the
+source of truth for the schedule; the app adds sign-in, RSVPs, in-app lineup
+editing and a changelog.
 
-## Creating a project
+- **Live:** https://jlac-shaw-worship-team.pages.dev (custom domain `jlac.workweek.dev` planned)
+- **Hosting:** Cloudflare Pages. **Pushing `main` deploys to production.**
+- **Data:** Cloudflare KV (users, sessions, RSVPs, log). The schedule itself lives in Google Calendar.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Access levels
+
+| Level | Can |
+|---|---|
+| Member | See the schedule, RSVP for themselves |
+| Admin (song leader) | Also edit lineups, RSVP for others, read the changelog (`/log`) |
+| Superadmin | Also add people, change access, reset passwords (`/admin`) |
+
+## Runbook
+
+**Add a person.** Sign in as a superadmin → **Admin** → **+ Add person**. Set a
+temporary password and send it to them yourself. "Name in the calendar" must match
+how the schedule writes their name (e.g. `Kevin`).
+
+**Reset a password.** **Admin** → **Edit** on the person → type a new password → Save.
+There is no self-serve reset.
+
+**Remove someone.** **Admin** → **Edit** → uncheck **Active**. They are signed out
+immediately and can't sign in; their history stays in the log.
+
+**Create a user without the app** (e.g. if no superadmin can sign in):
 
 ```sh
-# create a new project
-npx sv create my-app
+node scripts/create-user.mjs <email> "<Full Name>" <password> --roles=superadmin
 ```
 
-To recreate this project with the same configuration:
+Roles: `superadmin`, `admin`, `media` (comma-separated), or omit for a member.
 
-```sh
-# recreate this project
-npx sv@0.17.0 create --template minimal --types ts --add tailwindcss="plugins:none" --install npm ./
-```
+**Calendar editing stopped working** ("refresh token may have been revoked").
+Rerun `npm run google:auth`, sign in as `jlacshawmedia01@gmail.com`, then redeploy.
+The token only expires if that account's access is revoked, its password changes,
+or the OAuth app goes back to "Testing" in Google Cloud console.
+
+**Who changed what?** `/log`, newest first. Lineup edits made directly in Google
+Calendar are not logged, only ones made in the app.
+
+**Roll back a deploy.** Cloudflare dashboard → Workers & Pages →
+`jlac-shaw-worship-team` → Deployments → pick the previous one → **Rollback**.
+Or revert the commit and push.
+
+**Where the data is.** Cloudflare dashboard → Storage → KV. Production namespaces
+are the `id`s in `wrangler.jsonc`; the `preview_id`s are for local dev and
+preview deployments, so testing never touches real data.
 
 ## Developing
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
 ```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+npm install
+npm run dev          # local KV lives under .wrangler/ and starts empty
+npm run check        # type check
 ```
 
-## Building
+`.env` holds local secrets (never committed): `BOOTSTRAP_SECRET`,
+`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`. Production
+secrets are set on the Pages project (`npm run google:auth` sets the Google ones).
 
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+`wrangler.jsonc` is the source of truth for bindings: Cloudflare ignores the
+dashboard's binding settings once it exists.

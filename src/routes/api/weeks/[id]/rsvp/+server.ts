@@ -2,6 +2,7 @@ import { error, json } from '@sveltejs/kit'
 import { getRsvp, listRsvpsForWeek, normalizeEmail, putRsvp } from '$lib/server/kv'
 import { requireEnv } from '$lib/server/platform'
 import { requireAuth } from '$lib/server/auth'
+import { appendLog } from '$lib/server/log'
 import type { RsvpStatus } from '$lib/types'
 import type { RequestHandler } from './$types'
 
@@ -45,6 +46,16 @@ export const PATCH: RequestHandler = async (event) => {
   const weekId = event.params.id
   const before = await getRsvp(env, weekId, target)
   const record = await putRsvp(env, weekId, target, status, user.email)
+
+  if (before?.status !== status) {
+    const who = isSelf ? 'their' : `${target}'s`
+    await appendLog(env, user, 'rsvp.updated', `set ${who} RSVP for ${weekId} to ${status}`, {
+      weekId,
+      email: target,
+      before: before?.status ?? null,
+      after: status
+    })
+  }
 
   return json({ rsvp: record, before: before?.status ?? null })
 }

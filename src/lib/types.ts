@@ -17,7 +17,10 @@ export interface Week {
   playlist_url: string
   worship_leader_id: string | null
   is_published: boolean
+  /** The Sunday service event for this date, the one the lineup editor writes to. */
   google_event_id: string | null
+  /** That event's raw description, for the lineup editor. */
+  service_description?: string
   created_at: string
   updated_at: string
 }
@@ -30,19 +33,7 @@ export interface Assignment {
   is_primary: boolean
   confirmed: boolean
   created_at: string
-  profile?: Profile 
-}
-
-export interface Profile {
-  id: string
-  name: string
-  nickname: string
-  email: string
-  instruments: string[]
-  is_superadmin: boolean
-  is_worship_leader: boolean
-  is_media: boolean
-  created_at: string
+  profile?: Profile
 }
 
 export interface WeekWithDetails extends Week {
@@ -93,4 +84,16 @@ export interface RsvpRecord {
   updatedAt: string
   /** Email of whoever set it — a leader may answer on someone's behalf. */
   updatedBy: string
+}
+
+/** One changelog line. Written by $lib/server/log. */
+export interface LogEntry {
+  id: string
+  at: string
+  actorEmail: string
+  actorName: string
+  /** Dotted verb, e.g. `lineup.updated`, `user.created`. */
+  action: string
+  /** Sentence tail, read after the actor's name: "updated the lineup for Sun, Oct 4: …" */
+  summary: string
 }

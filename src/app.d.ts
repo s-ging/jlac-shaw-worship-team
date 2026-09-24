@@ -36,6 +36,14 @@ declare global {
 				 * Absent in normal operation, which disables the bootstrap path.
 				 */
 				BOOTSTRAP_SECRET?: string;
+				/**
+				 * OAuth credentials for the dedicated calendar account, which
+				 * performs lineup edits. Set by `npm run google:auth`. Without
+				 * them the app still reads the schedule; editing returns 503.
+				 */
+				GOOGLE_CLIENT_ID?: string;
+				GOOGLE_CLIENT_SECRET?: string;
+				GOOGLE_REFRESH_TOKEN?: string;
 			};
 		}
 	}

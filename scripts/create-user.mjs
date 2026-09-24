@@ -4,7 +4,10 @@
  * as them against the live site.
  *
  * Usage:
- *   node scripts/create-user.mjs <email> "<Full Name>" <password> [--roles=leader,admin,media]
+ *   node scripts/create-user.mjs <email> "<Full Name>" <password> [--roles=superadmin,admin,media]
+ *
+ * Roles: superadmin (manages people), admin (song leader: edits lineups), media.
+ * Omit --roles for a regular member.
  *
  * This writes to KV rather than calling POST /api/users, so it works with no
  * existing admin account — it is how the first superadmin is created. The
@@ -28,7 +31,7 @@ const flags = args.filter((a) => a.startsWith('--'))
 const [email, name, password] = args.filter((a) => !a.startsWith('--'))
 
 if (!email || !name || !password) {
-  console.error('Usage: node scripts/create-user.mjs <email> "<Full Name>" <password> [--roles=leader,admin,media]')
+  console.error('Usage: node scripts/create-user.mjs <email> "<Full Name>" <password> [--roles=superadmin,admin,media]')
   process.exit(1)
 }
 if (password.length < 8) {
@@ -64,8 +67,9 @@ const user = {
   name: name.trim(),
   passwordHash: await hashPassword(password),
   roles: {
-    isSuperAdmin: roleList.includes('admin'),
-    isWorshipLeader: roleList.includes('leader') || roleList.includes('admin'),
+    isSuperAdmin: roleList.includes('superadmin'),
+    // 'leader' is the old name for admin, still accepted.
+    isWorshipLeader: ['superadmin', 'admin', 'leader'].some((r) => roleList.includes(r)),
     isMedia: roleList.includes('media'),
     isMember: true
   },

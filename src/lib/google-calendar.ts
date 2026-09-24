@@ -3,7 +3,8 @@ import { CALENDAR_ID, GOOGLE_API_KEY } from './config'
 
 export async function fetchMonthEvents(year: number, month: number) {
   const startDate = new Date(year, month - 1, 1)
-  const endDate = new Date(year, month, 0)
+  // Exclusive upper bound: the first of next month, so events on the last day are included.
+  const endDate = new Date(year, month, 1)
   
   const timeMin = startDate.toISOString()
   const timeMax = endDate.toISOString()

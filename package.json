@@ -11,6 +11,7 @@
 		"setup:kv": "node scripts/setup-kv.mjs",
 		"seed:user": "node scripts/seed-user.mjs",
 		"create:user": "node scripts/create-user.mjs",
+		"google:auth": "node scripts/google-auth.mjs",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
 	},

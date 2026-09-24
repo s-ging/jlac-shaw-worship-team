@@ -2,6 +2,7 @@
   import { goto, invalidateAll } from '$app/navigation'
   import { page } from '$app/state'
   import '../lib/styles/global.css'
+  import { canEditSchedule } from '$lib/roles'
 
   let { children, data } = $props()
 
@@ -31,6 +32,12 @@
 
     {#if data.user}
       <div class="account">
+        {#if canEditSchedule(data.user)}
+          <a class="nav-link" href="/log">Log</a>
+        {/if}
+        {#if data.user.roles.isSuperAdmin}
+          <a class="nav-link" href="/admin">Admin</a>
+        {/if}
         <span class="greeting">{displayName}</span>
         <button class="link-btn" onclick={signOut} disabled={signingOut}>
           {signingOut ? '…' : 'Sign out'}
@@ -62,6 +69,7 @@
 
   .app-header {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     gap: 12px;
@@ -87,6 +95,13 @@
     align-items: center;
     gap: 10px;
     font-size: 14px;
+  }
+
+  .nav-link {
+    color: var(--color-primary, #2563eb);
+    font-weight: 600;
+    text-decoration: none;
+    padding: 6px 2px;
   }
 
   .greeting {

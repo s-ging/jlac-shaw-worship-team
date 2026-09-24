@@ -26,8 +26,7 @@
     return assignment.profile?.nickname || assignment.profile_id || 'Unknown'
   }
 
-  // Compute media members once in the script
-  const mediaMembers = getMediaMembers()
+  const mediaMembers = $derived(getMediaMembers())
 </script>
 
 <!-- Vocalists -->
