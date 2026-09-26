@@ -17,7 +17,7 @@ components[6]{name,job}:
   admin/People.svelte,"The team for superadmins: ministry and access filters, A–Z sort; a table on PC (900px and up), cards on phones. Edits in place."
   admin/UserForm.svelte,"Add or edit one person. Two columns with `wide` for the table row. Primary role only offers what they play.""
 
-rules[18]{area,rule}:
+rules[19]{area,rule}:
   editing,"Edit in place: dropdowns replace the names in the same rows. Never open a separate form."
   picker,"List only people marked for the slot's part, under a heading naming it. No 'Everyone else' group. 'Someone else…' lets you type a name."
   picker,"One person, one spot per week. Anyone already placed is hidden from other dropdowns on the same side (band or media)."
@@ -36,11 +36,13 @@ rules[18]{area,rule}:
   style,"DM Sans. Deliberate, calm layout; nothing that looks templated."
   data,"The part matrix is scripts/roster.tsv (gitignored, has emails). It must never reach a build or a commit."
   data,"SLOT_PARTS in src/lib/parts.ts (which parts fill which slot) is an assumption, not from the roster. Confirm before relying on it."
+  week,"The week's theme is the service event's title; the Motif line is a colour. Theme and YouTube playlist are edited in the same edit mode, in the WeekDetails spot (src/lib/week-info.ts)."
 
-answered[3]{question,answer}:
+answered[4]{question,answer}:
   "Does 'backup' in the save rule mean the Second Praise Leader slot?","No: any second vocalist, in any vocal slot"
   "Should people not on a week's lineup be able to RSVP for it?","No: they only see the responses"
   "Should the server reject incomplete lineups too?","Yes: the lineup endpoint checks missingParts"
+  "Is the Theme the event title or the Motif line?","The event title. A placeholder title (\"Week's Theme\") counts as no theme"
 
 openQuestions[1]{question,currentAnswer}:
   "Should the RSVP endpoint also refuse answers from people not on the lineup?","Not yet: only the app hides the buttons"

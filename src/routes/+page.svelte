@@ -16,6 +16,7 @@
   import { extractLineup, isServiceEvent } from '$lib/lineup'
   import { isNamed, lineupNames } from '$lib/parts'
   import { canEditSchedule } from '$lib/roles'
+  import { extractPlaylist, extractTheme } from '$lib/week-info'
 
   // Auth state comes from +layout.server.ts, so it is known at first paint.
   let { data } = $props()
@@ -144,10 +145,13 @@
       if (!week.google_event_id && event.id && isServiceEvent(event)) {
         week.google_event_id = event.id
         week.service_description = event.description ?? ''
+        week.service_summary = event.summary ?? ''
+        // The theme is the service's title; the description's "Motif:" line is a colour, not the theme.
+        week.theme = extractTheme(event.summary)
+        week.playlist_url = extractPlaylist(event.description) || week.playlist_url
       }
       const processed = processEvent(event)
-      if (processed.theme) week.theme = processed.theme
-      if (processed.playlistUrl) week.playlist_url = processed.playlistUrl
+      if (!week.playlist_url && processed.playlistUrl) week.playlist_url = processed.playlistUrl
       week.assignments.push(...processed.assignments)
     }
     return Array.from(weekMap.values())
@@ -196,11 +200,15 @@
     />
 
     {#if currentWeek}
-      <WeekDetails week={currentWeek} />
+      <!-- While editing, the lineup shows the theme and playlist as fields in this spot. -->
+      {#if !editingLineup}
+        <WeekDetails week={currentWeek} />
+      {/if}
       {#if useServiceLineup && currentWeek.google_event_id}
         <Lineup
           eventId={currentWeek.google_event_id}
           description={currentWeek.service_description ?? ''}
+          summary={currentWeek.service_summary ?? ''}
           {canEdit}
           {rsvps}
           {people}

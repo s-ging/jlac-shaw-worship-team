@@ -78,20 +78,20 @@ export async function getEvent(env: Env, id: string): Promise<CalendarEvent> {
 }
 
 /**
- * Writes a new description, conditional on the event still being the version
- * that was read. Returns null if it changed in between; the caller reports that
- * as a conflict. Patching one instance of a recurring event only changes that
- * one Sunday.
+ * Writes a new description and/or title, conditional on the event still being
+ * the version that was read. Returns null if it changed in between; the caller
+ * reports that as a conflict. Patching one instance of a recurring event only
+ * changes that one Sunday.
  */
-export async function patchDescription(
+export async function patchEvent(
   env: Env,
   event: CalendarEvent,
-  description: string
+  fields: { description?: string; summary?: string }
 ): Promise<CalendarEvent | null> {
   const res = await call(env, eventUrl(event.id), {
     method: 'PATCH',
     headers: { 'content-type': 'application/json', 'if-match': event.etag },
-    body: JSON.stringify({ description })
+    body: JSON.stringify(fields)
   })
   if (res.status === 412) return null
   if (!res.ok) return failed(res, 'update')

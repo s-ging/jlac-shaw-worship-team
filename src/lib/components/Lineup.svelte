@@ -2,16 +2,20 @@
   import { editorSlots, extractLineup, labelKey, missingParts, PRESET_SLOTS, type Requirement, type Lineup, type LineupSection, type LineupSlot } from '$lib/lineup'
   import { calendarName, joinNames, matchByNames, matchUser, PARTS, slotParts, splitNames, userParts } from '$lib/parts'
   import type { PublicUser, RsvpPerson, RsvpRecord, RsvpStatus } from '$lib/types'
+  import { extractPlaylist, extractTheme, isPlaylistUrl, type WeekInfo } from '$lib/week-info'
   import SecondNav from './SecondNav.svelte'
 
   /**
    * The week's lineup, read from the service event's description. For editors
-   * the same rows turn into dropdowns in place; saving writes back to Calendar.
+   * the same rows turn into dropdowns in place, with the week's theme and
+   * playlist above them (the page hides WeekDetails meanwhile, so they take its
+   * place); saving writes back to Calendar.
    * Each name carries its person's RSVP when they have answered.
    */
   let {
     eventId,
     description,
+    summary,
     canEdit,
     rsvps,
     people,
@@ -20,6 +24,8 @@
   }: {
     eventId: string
     description: string
+    /** The event's title, which holds the week's theme. */
+    summary: string
     canEdit: boolean
     rsvps: Record<string, RsvpRecord>
     people: Record<string, RsvpPerson>
@@ -79,6 +85,12 @@
   let original: Lineup = { slots: [], media: '' }
   let rows = $state<Row[]>([])
 
+  /** Theme and playlist as they were when editing started, and as being edited. */
+  let originalInfo: WeekInfo = { theme: '', playlist: '' }
+  let theme = $state('')
+  let playlist = $state('')
+  const playlistOk = $derived(!playlist.trim() || isPlaylistUrl(playlist.trim()))
+
   /** Active team members. Until they load (or if loading fails) every slot is a plain text box. */
   let team = $state<PublicUser[]>([])
   let teamLoaded = $state(false)
@@ -111,6 +123,9 @@
     mediaRows = splitNames(original.media).map((name) => ({ name, typing: false }))
     if (mediaRows.length === 0) mediaRows.push({ name: '', typing: false })
     mediaTouched = false
+    originalInfo = { theme: extractTheme(summary), playlist: extractPlaylist(description) }
+    theme = originalInfo.theme
+    playlist = originalInfo.playlist
     error = null
     editing = true
     if (!teamLoaded) loadTeam()
@@ -258,7 +273,7 @@
   }
 
   async function save() {
-    if (saving || missing.length > 0) return
+    if (saving || missing.length > 0 || !playlistOk) return
     saving = true
     error = null
 
@@ -268,7 +283,11 @@
       const res = await fetch(`/api/events/${encodeURIComponent(eventId)}/lineup`, {
         method: 'PUT',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ before: original, after })
+        body: JSON.stringify({
+          before: original,
+          after,
+          info: { before: originalInfo, after: { theme: theme.trim(), playlist: playlist.trim() } }
+        })
       })
       if (!res.ok) {
         const body = await res.json().catch(() => null)
@@ -352,6 +371,33 @@
     save()
   }}
 >
+  {#if editing}
+    <section class="info">
+      <label class="field">
+        <span class="field-label">Theme</span>
+        <input class="field-input" bind:value={theme} placeholder="No theme set" maxlength="120" autocomplete="off" disabled={saving} />
+      </label>
+      <label class="field">
+        <span class="field-label">🎵 YouTube playlist</span>
+        <input
+          class="field-input"
+          class:invalid={!playlistOk}
+          type="url"
+          inputmode="url"
+          bind:value={playlist}
+          placeholder="https://youtube.com/playlist?list=…"
+          maxlength="300"
+          autocomplete="off"
+          disabled={saving}
+        />
+        {#if !playlistOk}
+          <span class="field-hint">Paste a YouTube link</span>
+        {/if}
+      </label>
+    </section>
+    <hr class="divider" />
+  {/if}
+
   {#each SECTIONS as section (section.key)}
     <section class="group">
       <h3 class="group-title">{section.title}</h3>
@@ -445,17 +491,19 @@
 
   {#if canEdit}
     {#if editing}
-      <SecondNav label="Save lineup" sticky>
+      <SecondNav label="Save week" sticky>
         <div class="actions">
           {#if missing.length > 0}
             <p class="needed">Still needed: {missing.map((m) => m.text).join(', ')}</p>
+          {:else if !playlistOk}
+            <p class="needed">The playlist needs to be a YouTube link</p>
           {/if}
           <button type="button" class="cancel" onclick={() => (editing = false)} disabled={saving}>Cancel</button>
-          <button type="submit" class="save" disabled={saving || missing.length > 0}>{saving ? 'Saving…' : 'Save to calendar'}</button>
+          <button type="submit" class="save" disabled={saving || missing.length > 0 || !playlistOk}>{saving ? 'Saving…' : 'Save to calendar'}</button>
         </div>
       </SecondNav>
     {:else}
-      <button type="button" class="edit" onclick={start}>Edit lineup</button>
+      <button type="button" class="edit" onclick={start}>Edit week</button>
     {/if}
   {/if}
 </form>
@@ -467,6 +515,66 @@
 
   .group {
     margin-bottom: 20px;
+  }
+
+  /* ---- Edit mode: theme and playlist, where WeekDetails shows them ---- */
+
+  .info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 0;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .field-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+  }
+
+  .field-input {
+    width: 100%;
+    min-width: 0;
+    /* 16px stops iOS Safari zooming on focus */
+    font: 16px/1.2 var(--font-family);
+    color: var(--color-text);
+    padding: 9px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: white;
+  }
+
+  .field-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-bg-active);
+  }
+
+  .field-input::placeholder {
+    color: #aaa;
+  }
+
+  .field-input.invalid {
+    border-color: #fdb022;
+    background-color: #fffaeb;
+  }
+
+  .field-hint {
+    font-size: 13px;
+    color: #b54708;
+  }
+
+  .divider {
+    border: none;
+    border-top: 2px solid var(--color-border);
+    margin: 12px 0 20px;
+    opacity: 0.5;
   }
 
   .group-title {

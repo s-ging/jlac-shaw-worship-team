@@ -21,6 +21,8 @@ export interface Week {
   google_event_id: string | null
   /** That event's raw description, for the lineup editor. */
   service_description?: string
+  /** That event's title, which holds the week's theme. */
+  service_summary?: string
   created_at: string
   updated_at: string
 }

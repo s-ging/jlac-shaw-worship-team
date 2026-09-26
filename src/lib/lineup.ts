@@ -83,10 +83,13 @@ export function labelText(label: string): string {
 
 // ---- Reading ----
 
+/** Descriptions edited in the Calendar web UI are HTML; ones typed elsewhere are plain text. */
+export function isHtml(description: string): boolean {
+  return /<br\s*\/?>|<\/?(?:b|a|p|div|span)\b/i.test(description)
+}
+
 function splitLines(description: string): { lines: string[]; html: boolean } {
-  // Descriptions edited in the Calendar web UI are HTML; ones typed elsewhere are plain text.
-  const html = /<br\s*\/?>|<\/?(?:b|a|p|div|span)\b/i.test(description)
-  return { lines: description.split(/<br\s*\/?>|\r?\n/i), html }
+  return { lines: description.split(/<br\s*\/?>|\r?\n/i), html: isHtml(description) }
 }
 
 function toText(raw: string): string {

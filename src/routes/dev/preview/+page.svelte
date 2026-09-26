@@ -5,6 +5,7 @@
   import RsvpCard from '$lib/components/RsvpCard.svelte'
   import { fetchMonthEvents } from '$lib/google-calendar'
   import { extractLineup, isServiceEvent, writeLineup, type Lineup as LineupData } from '$lib/lineup'
+  import { writePlaylist, writeTheme, type WeekInfo } from '$lib/week-info'
   import { calendarName, isNamed, lineupNames, namesOf } from '$lib/parts'
   import { canEditSchedule } from '$lib/roles'
   import { loadRoster } from '../roster'
@@ -31,6 +32,7 @@
 
   let serviceDate = $state('')
   let description = $state('')
+  let summary = $state('')
   const assigned = $derived(viewer ? isNamed(viewer, lineupNames(extractLineup(description))) : false)
   let loadError = $state<string | null>(null)
 
@@ -52,6 +54,7 @@
       if (next) {
         serviceDate = (next.start?.dateTime || next.start?.date).slice(0, 10)
         description = next.description ?? ''
+        summary = next.summary ?? ''
         return
       }
     }
@@ -85,8 +88,10 @@
     }
 
     if (url.pathname.startsWith('/api/events/')) {
-      const { after } = JSON.parse(String(init?.body)) as { after: LineupData }
+      const { after, info } = JSON.parse(String(init?.body)) as { after: LineupData; info: { before: WeekInfo; after: WeekInfo } }
       description = writeLineup(description, after)
+      if (info.after.playlist !== info.before.playlist) description = writePlaylist(description, info.after.playlist)
+      if (info.after.theme !== info.before.theme) summary = writeTheme(info.after.theme, serviceDate)
       return reply({ changes: [] })
     }
 
@@ -128,15 +133,17 @@
     <p class="muted">Loading the next service…</p>
   {:else}
     {#key viewerEmail}
-      <Lineup eventId={serviceDate} {description} canEdit={canEditSchedule(viewer)} {rsvps} {people} onSaved={() => {}} bind:editing={editingLineup} />
+      <Lineup eventId={serviceDate} {description} {summary} canEdit={canEditSchedule(viewer)} {rsvps} {people} onSaved={() => {}} bind:editing={editingLineup} />
     {/key}
     {#if !editingLineup}
       <RsvpCard weekId={serviceDate} user={viewer} bind:rsvps bind:people {assigned} />
     {/if}
 
     <details>
-      <summary>Calendar description</summary>
-      <pre>{description}</pre>
+      <summary>Calendar title and description</summary>
+      <pre>{summary}
+
+{description}</pre>
     </details>
   {/if}
 
