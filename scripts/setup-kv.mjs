@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Creates the three KV namespaces (production + preview) and writes their ids
+ * Creates the KV namespaces (production + preview) and writes their ids
  * into wrangler.jsonc.
  *
  * Prerequisite: `npx wrangler login`
@@ -12,7 +12,7 @@
 import { execFileSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
 
-const BINDINGS = ['USERS_KV', 'SESSIONS_KV', 'LOG_KV']
+const BINDINGS = ['USERS_KV', 'SESSIONS_KV', 'RSVP_KV', 'LOG_KV', 'NOTIFY_KV']
 const CONFIG = 'wrangler.jsonc'
 
 function wrangler(args) {
@@ -80,7 +80,7 @@ for (const binding of BINDINGS) {
       console.log(`  ${placeholder} already filled in, skipping`)
       continue
     }
-    config = config.replace(placeholder, resolve(binding, preview, existing))
+    config = config.replaceAll(placeholder, resolve(binding, preview, existing))
   }
 }
 

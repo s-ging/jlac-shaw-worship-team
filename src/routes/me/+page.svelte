@@ -14,6 +14,24 @@
   let savingNickname = $state(false)
   let nicknameMessage = $state<{ ok: boolean; text: string } | null>(null)
 
+  // svelte-ignore state_referenced_locally
+  let emailAssignments = $state(data.user?.emailAssignments !== false)
+  let savingEmail = $state(false)
+  let emailMessage = $state<{ ok: boolean; text: string } | null>(null)
+
+  async function saveEmailSetting() {
+    savingEmail = true
+    emailMessage = null
+    const failure = await patchMe({ emailAssignments })
+    savingEmail = false
+    if (failure) {
+      emailAssignments = !emailAssignments
+      emailMessage = { ok: false, text: failure }
+    } else {
+      await invalidateAll()
+    }
+  }
+
   let currentPassword = $state('')
   let newPassword = $state('')
   let confirmPassword = $state('')
@@ -134,6 +152,21 @@
   {/if}
 
   {#if !mustChange}
+    <section class="card">
+      <h2>Notifications</h2>
+      <label class="toggle">
+        <input type="checkbox" bind:checked={emailAssignments} onchange={saveEmailSetting} disabled={savingEmail} />
+        <span>Email me when I'm put on a lineup</span>
+      </label>
+      <p class="help">
+        Changes are gathered into one email, sent between 7am and 9pm, at most twice a day. They always show under
+        <a href="/notifications">🔔 Notifications</a> either way.
+      </p>
+      {#if emailMessage}
+        <p class={emailMessage.ok ? 'ok' : 'error'} role="alert">{emailMessage.text}</p>
+      {/if}
+    </section>
+
     <BottomNav active="me" />
   {/if}
 </div>
@@ -212,6 +245,26 @@
     gap: 5px;
     font-size: 13px;
     font-weight: 600;
+  }
+
+  .toggle {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 500;
+    min-height: 44px;
+  }
+
+  .toggle input {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    accent-color: var(--color-primary);
+  }
+
+  .card .help {
+    margin: 0;
   }
 
   input {

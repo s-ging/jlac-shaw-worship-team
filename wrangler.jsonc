@@ -36,6 +36,11 @@
       "binding": "LOG_KV",
       "id": "5fc4537a53be406784a667dc42a5a0aa",
       "preview_id": "5a64f7ef6ec2407fb5582734097749eb"
+    },
+    {
+      "binding": "NOTIFY_KV",
+      "id": "995c20fe780443d6bdd2f6422ea34a7c",
+      "preview_id": "ecc8614b55424d7e9a173f2ce82a8b57"
     }
   ],
 
@@ -49,7 +54,8 @@
         { "binding": "USERS_KV", "id": "2c1db1e8b74d4d96b8b4d63f00d8e91f" },
         { "binding": "SESSIONS_KV", "id": "e274f53673b04b7d82d95a54e797971b" },
         { "binding": "RSVP_KV", "id": "08766b0bd1c54553b07edf788661e60d" },
-        { "binding": "LOG_KV", "id": "5a64f7ef6ec2407fb5582734097749eb" }
+        { "binding": "LOG_KV", "id": "5a64f7ef6ec2407fb5582734097749eb" },
+        { "binding": "NOTIFY_KV", "id": "ecc8614b55424d7e9a173f2ce82a8b57" }
       ]
     }
   }

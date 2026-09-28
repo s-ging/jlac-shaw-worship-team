@@ -3,6 +3,8 @@
   import { page } from '$app/state'
   import '../lib/styles/global.css'
   import { canEditSchedule } from '$lib/roles'
+  import { onMount } from 'svelte'
+  import { bell, refreshBell } from '$lib/bell.svelte'
 
   let { children, data } = $props()
 
@@ -12,12 +14,25 @@
     signingOut = true
     try {
       await fetch('/api/auth/logout', { method: 'POST' })
+      // The service worker keeps signed-in pages for offline use; they're not the next person's.
+      if ('caches' in window) await caches.delete('pages').catch(() => {})
+      bell.unread = 0
       await invalidateAll()
       await goto('/')
     } finally {
       signingOut = false
     }
   }
+
+  // The badge is checked when the app opens and when it comes back to the foreground.
+  onMount(() => {
+    const check = () => {
+      if (data.user && document.visibilityState === 'visible') refreshBell()
+    }
+    check()
+    document.addEventListener('visibilitychange', check)
+    return () => document.removeEventListener('visibilitychange', check)
+  })
 
   const displayName = $derived(data.user?.nickname || data.user?.name?.split(' ')[0] || '')
 </script>
@@ -32,6 +47,14 @@
 
     {#if data.user}
       <div class="account">
+        <a
+          class="nav-link bell"
+          href="/notifications"
+          aria-label={bell.unread ? `Notifications, ${bell.unread} new` : 'Notifications'}
+        >
+          <span aria-hidden="true">🔔</span>
+          {#if bell.unread}<span class="badge" aria-hidden="true">{bell.unread > 9 ? '9+' : bell.unread}</span>{/if}
+        </a>
         {#if canEditSchedule(data.user)}
           <a class="nav-link" href="/log">Log</a>
         {/if}
@@ -102,6 +125,32 @@
     font-weight: 600;
     text-decoration: none;
     padding: 6px 2px;
+  }
+
+  .bell {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    min-height: 36px;
+    font-size: 17px;
+  }
+
+  .badge {
+    position: absolute;
+    top: 0;
+    right: -2px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+    color: white;
+    background: #d92d20;
   }
 
   .greeting {

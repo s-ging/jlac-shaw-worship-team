@@ -1,6 +1,7 @@
 <script lang="ts">
+  /** null on pages that aren't one of these tabs. */
   let { active = 'calendar' } = $props<{
-    active?: 'calendar' | 'music' | 'me'
+    active?: 'calendar' | 'music' | 'me' | null
   }>()
 </script>
 

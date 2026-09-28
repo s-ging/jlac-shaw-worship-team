@@ -8,7 +8,7 @@ import type { UserRecord } from '$lib/types'
 import type { RequestHandler } from './$types'
 
 /**
- * Changes your own nickname and/or password. Anyone signed in.
+ * Changes your own nickname, password and/or email setting. Anyone signed in.
  *
  * A password change needs the current password, even on first sign-in (it's
  * the starting password they were given), so a phone left signed in can't be
@@ -18,7 +18,7 @@ export const PATCH: RequestHandler = async (event) => {
   const user = requireAuth(event)
   const env = requireEnv(event.platform)
 
-  let body: { nickname?: unknown; currentPassword?: unknown; newPassword?: unknown }
+  let body: { nickname?: unknown; currentPassword?: unknown; newPassword?: unknown; emailAssignments?: unknown }
   try {
     body = await event.request.json()
   } catch {
@@ -35,6 +35,11 @@ export const PATCH: RequestHandler = async (event) => {
       next.nickname = nickname
       changes.push(nickname ? `set their nickname to ${nickname}` : 'cleared their nickname')
     }
+  }
+
+  if (typeof body.emailAssignments === 'boolean' && body.emailAssignments !== (user.emailAssignments !== false)) {
+    next.emailAssignments = body.emailAssignments
+    changes.push(body.emailAssignments ? 'turned on lineup emails' : 'turned off lineup emails')
   }
 
   if (typeof body.newPassword === 'string' && body.newPassword) {

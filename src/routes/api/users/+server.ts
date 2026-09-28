@@ -3,6 +3,7 @@ import { hashPassword } from '$lib/server/crypto'
 import { getUser, listUsers, normalizeEmail, putUser, toPublicUser } from '$lib/server/kv'
 import { timingSafeEqualString } from '$lib/server/crypto'
 import { appendLog } from '$lib/server/log'
+import { greetingName, sendWelcome } from '$lib/server/mailer'
 import { requireEnv } from '$lib/server/platform'
 import { requireRole } from '$lib/server/auth'
 import { PRIMARY_ROLES } from '$lib/parts'
@@ -92,5 +93,9 @@ export const POST: RequestHandler = async (event) => {
   // The bootstrap user has no creator to credit, so they are logged as adding themselves.
   const actor = isBootstrap ? user : event.locals.user!
   await appendLog(env, actor, 'user.created', `added ${name} (${email}) as ${TIER_LABELS[tierOf(roles)]}`, { email })
+  // Their link and sign-in. The bootstrap user set their own password and needs neither.
+  if (!isBootstrap) {
+    await sendWelcome(event.platform, env, { to: email, name: greetingName(user), password })
+  }
   return json({ user: toPublicUser(user), bootstrap: isBootstrap }, { status: 201 })
 }

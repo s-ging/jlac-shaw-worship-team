@@ -1,0 +1,12 @@
+{
+  "name": "Praise Team Scheduler",
+  "short_name": "Praise Team",
+  "description": "The JLAC Shaw worship team's schedule, lineups and RSVPs.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fafafa",
+  "theme_color": "#ffffff",
+  "icons": []
+}

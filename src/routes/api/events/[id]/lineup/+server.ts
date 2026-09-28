@@ -3,7 +3,10 @@ import { format, parseISO } from 'date-fns'
 import { diffLineup, extractLineup, missingParts, sameLineup, writeLineup, type Lineup, type LineupChange, type LineupSlot } from '$lib/lineup'
 import { requireRole } from '$lib/server/auth'
 import { getEvent, patchEvent } from '$lib/server/google'
+import { listUsers } from '$lib/server/kv'
 import { appendLog } from '$lib/server/log'
+import { afterResponse } from '$lib/server/mailer'
+import { recordLineupSave } from '$lib/server/notify'
 import { requireEnv } from '$lib/server/platform'
 import { diffInfo, extractPlaylist, extractTheme, isPlaylistUrl, writePlaylist, writeTheme, type WeekInfo } from '$lib/week-info'
 import type { RequestHandler } from './$types'
@@ -53,6 +56,9 @@ const describe = (c: LineupChange) => `${c.label} ${c.from || '(empty)'} → ${c
  * directly in Google Calendar, and we refuse rather than overwrite their edit.
  * The write itself is also conditional on the etag we just read, which closes
  * the gap between our read and our write.
+ *
+ * Anyone the save puts on the week gets a bell notice and, later, an email
+ * digest ($lib/server/notify).
  */
 export const PUT: RequestHandler = async (event) => {
   const user = requireRole(event, 'isWorshipLeader')
@@ -103,6 +109,9 @@ export const PUT: RequestHandler = async (event) => {
     date,
     changes
   })
+
+  const week = { date, ...(info?.after ?? current) }
+  await afterResponse(event.platform, listUsers(env).then((users) => recordLineupSave(env, users, before, after, week, user)))
 
   return json({ changes })
 }

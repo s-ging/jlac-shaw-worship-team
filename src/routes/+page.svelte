@@ -170,7 +170,14 @@
     selectedWeekIndex = index
   }
 
-  onMount(() => loadMonth())
+  // `/?week=2026-10-04` opens that Sunday: the bell and the emails link here.
+  onMount(() => {
+    const week = new URLSearchParams(location.search).get('week')
+    if (!week || !/^\d{4}-\d{2}-\d{2}$/.test(week)) return loadMonth()
+    const [y, m] = week.split('-').map(Number)
+    currentDate = new Date(y, m - 1, 1)
+    loadMonth(week)
+  })
 </script>
 
 {#if loading}

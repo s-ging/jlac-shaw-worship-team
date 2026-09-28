@@ -375,7 +375,8 @@ const USER_FIELDS: Record<keyof UserRecord, Check> = {
   createdAt: [isTimestamp, 'an ISO timestamp'],
   updatedAt: [isTimestamp, 'an ISO timestamp'],
   active: [(v) => typeof v === 'boolean', 'true or false'],
-  mustChangePassword: [(v) => typeof v === 'boolean', 'true or false', true]
+  mustChangePassword: [(v) => typeof v === 'boolean', 'true or false', true],
+  emailAssignments: [(v) => typeof v === 'boolean', 'true or false', true]
 }
 
 function checkUserKey(key: string): string {

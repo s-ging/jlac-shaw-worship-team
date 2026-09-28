@@ -5,7 +5,7 @@ import { DISPLAY_TIMEZONE } from '$lib/config'
  * matcher, the server helpers and the pages, so there is one allowlist.
  * Anything not listed here is a 404.
  */
-export const KV_NAMESPACES = ['USERS_KV', 'SESSIONS_KV', 'RSVP_KV', 'LOG_KV'] as const
+export const KV_NAMESPACES = ['USERS_KV', 'SESSIONS_KV', 'RSVP_KV', 'LOG_KV', 'NOTIFY_KV'] as const
 
 export type KvNamespaceName = (typeof KV_NAMESPACES)[number]
 
@@ -22,7 +22,13 @@ export const NAMESPACE_INFO: Record<KvNamespaceName, NamespaceInfo> = {
   USERS_KV: { label: 'Users', hint: 'user:{email}', prefix: 'user:', readOnly: false },
   SESSIONS_KV: { label: 'Sessions', hint: 'session:{token}, expire on their own', prefix: 'session:', readOnly: false },
   RSVP_KV: { label: 'RSVPs', hint: 'rsvp:{date}:{email}', prefix: 'rsvp:', readOnly: false },
-  LOG_KV: { label: 'Changelog', hint: 'log:{time}:{id}, read-only', prefix: 'log:', readOnly: true }
+  LOG_KV: { label: 'Changelog', hint: 'log:{time}:{id}, read-only', prefix: 'log:', readOnly: true },
+  NOTIFY_KV: {
+    label: 'Notifications',
+    hint: 'notify:{email}:{date}, week:{date}, seen:{email}, sent:{email}:{day}; expire on their own',
+    prefix: 'notify:',
+    readOnly: false
+  }
 }
 
 /** Stands in for a secret (a password hash, a session token) everywhere the browser sees one. */

@@ -1,6 +1,6 @@
 /**
- * Shared by the scripts that write users straight into PRODUCTION KV
- * (create-user.mjs, import-users.mjs).
+ * Shared by the scripts that work on users straight in PRODUCTION KV:
+ * create-user.mjs and import-users.mjs write them, send-welcome.mjs reads them.
  *
  * Hashes are produced here in Node rather than by the app, so the format could
  * in principle drift from src/lib/server/crypto.ts. Each script ends by signing
@@ -21,17 +21,26 @@ const SALT_BYTES = 16
 
 const toBase64 = (bytes) => Buffer.from(bytes).toString('base64')
 
-export async function hashPassword(plain) {
-  const salt = crypto.getRandomValues(new Uint8Array(SALT_BYTES))
+async function derive(plain, salt, iterations) {
   const material = await crypto.subtle.importKey('raw', new TextEncoder().encode(plain), 'PBKDF2', false, [
     'deriveBits'
   ])
-  const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt, iterations: ITERATIONS, hash: 'SHA-256' },
-    material,
-    KEY_BITS
-  )
-  return `pbkdf2$${ITERATIONS}$${toBase64(salt)}$${toBase64(new Uint8Array(bits))}`
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations, hash: 'SHA-256' }, material, KEY_BITS)
+  return new Uint8Array(bits)
+}
+
+export async function hashPassword(plain) {
+  const salt = crypto.getRandomValues(new Uint8Array(SALT_BYTES))
+  const hash = await derive(plain, salt, ITERATIONS)
+  return `pbkdf2$${ITERATIONS}$${toBase64(salt)}$${toBase64(hash)}`
+}
+
+/** True if `plain` is the password behind a stored hash. */
+export async function verifyPassword(plain, stored) {
+  const [scheme, iterations, salt, hash] = String(stored).split('$')
+  if (scheme !== 'pbkdf2' || !salt || !hash) return false
+  const actual = await derive(plain, Buffer.from(salt, 'base64'), Number(iterations))
+  return toBase64(actual) === hash
 }
 
 /** Access tier + media flag → the role flags the app stores. Mirrors rolesForTier in src/lib/roles.ts. */
@@ -57,6 +66,13 @@ export function existingEmails() {
   const out = wrangler(['kv', 'key', 'list', '--binding=USERS_KV', '--remote', '--preview', 'false'])
   const keys = JSON.parse(out.slice(out.indexOf('[')))
   return new Set(keys.map((k) => k.name.replace(/^user:/, '')))
+}
+
+/** Every user record in production, password hashes included. One read per user. */
+export function getUsers() {
+  return [...existingEmails()].map((email) =>
+    JSON.parse(wrangler(['kv', 'key', 'get', `user:${email}`, '--binding=USERS_KV', '--remote', '--preview', 'false']))
+  )
 }
 
 /**

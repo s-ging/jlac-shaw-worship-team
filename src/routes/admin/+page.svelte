@@ -1,6 +1,7 @@
 <script lang="ts">
   import { invalidateAll } from '$app/navigation'
   import People from '$lib/components/admin/People.svelte'
+  import WelcomeSend from '$lib/components/admin/WelcomeSend.svelte'
 
   let { data } = $props()
 </script>
@@ -12,6 +13,8 @@
     <h1>People</h1>
     {#if data.canUseDataConsole}<a class="data-link" href="/admin/data">Data</a>{/if}
   </div>
+
+  <WelcomeSend />
 
   <People users={data.users} currentEmail={data.user?.email} onChanged={invalidateAll} />
 </div>

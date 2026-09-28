@@ -72,6 +72,8 @@ export interface UserRecord {
    * their own before anything else.
    */
   mustChangePassword?: boolean
+  /** False once they turn off "email me when I'm put on a lineup" under Me. Unset means on. */
+  emailAssignments?: boolean
 }
 
 /** A user record with secrets stripped. This is the only shape the client sees. */
@@ -114,4 +116,44 @@ export interface LogEntry {
   action: string
   /** Sentence tail, read after the actor's name: "updated the lineup for Sun, Oct 4: …" */
   summary: string
+}
+
+/**
+ * Where one person stands on one Sunday, in NOTIFY_KV as `notify:{email}:{date}`.
+ * Written when a lineup saved in the app gives them a part. It's both their
+ * bell entry and the email digest's queue: one record per person per Sunday,
+ * so edits never pile up into several messages. Expires after that Sunday.
+ */
+export interface AssignmentNotice {
+  email: string
+  /** The Sunday, YYYY-MM-DD. */
+  date: string
+  /** What they have that week: ["Bass", "Media"]. Empty once they're taken off. */
+  parts: string[]
+  /** Who last gave them a part, as the app calls them. */
+  by: string
+  /** When they last gained a part. Drives "new" in the bell and when the digest goes out. */
+  updatedAt: string
+  /** Parts they've already been emailed about for this Sunday. */
+  emailedParts: string[]
+}
+
+/** One Sunday as the digest email shows it, saved with every lineup edit as `week:{date}`. */
+export interface WeekSnapshot {
+  date: string
+  theme: string
+  playlist: string
+  vocalists: { part: string; name: string }[]
+  instrumentalists: { part: string; name: string }[]
+  media: string
+}
+
+/** One person in the team send on /admin (see $lib/server/mailer). */
+export interface WelcomeCandidate {
+  email: string
+  name: string
+  /** Still on STARTING_PASSWORD, so the email includes it. */
+  withPassword: boolean
+  /** When they were last sent a welcome, if ever. */
+  welcomedAt: string | null
 }
