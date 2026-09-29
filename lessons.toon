@@ -9,16 +9,17 @@ working:
   componentForward: "Build components with one job, reused rather than copied. One docked bar (SecondNav), one picker, one lineup view that also edits."
   realData: "Preview with real data (scripts/roster.tsv, the live calendar), never invented people or answers."
 
-components[7]{name,job}:
+components[8]{name,job}:
   Lineup.svelte,"Shows the week's lineup; for admins the same rows turn into dropdowns. Save rules come from missingParts (src/lib/lineup.ts)."
   SecondNav.svelte,"The bar docked above BottomNav on phones. Holds one thing at a time."
   RsvpCard.svelte,"Your answer plus everyone's responses. Docks its buttons in SecondNav when you're assigned."
-  BottomNav.svelte,"App navigation. SecondNav assumes its 53px height."
+  BottomNav.svelte,"App navigation: Calendar, Admin (admins and superadmins), Me. SecondNav assumes its 53px height."
+  routes/admin/+layout.svelte,"The Admin tab's pages: People and Analytics (superadmins), Log (admins too). One tab means no tab bar."
   admin/People.svelte,"The team for superadmins: ministry and access filters, A–Z sort; a table on PC (900px and up), cards on phones. Edits in place."
   admin/UserForm.svelte,"Add or edit one person. Two columns with `wide` for the table row. Primary role only offers what they play.""
   NotificationList.svelte,"The bell's list: one row per upcoming Sunday you're on, newest change first, each opening that week (/?week=). Used by /notifications and its preview."
 
-rules[22]{area,rule}:
+rules[24]{area,rule}:
   editing,"Edit in place: dropdowns replace the names in the same rows. Never open a separate form."
   picker,"List only people marked for the slot's part, under a heading naming it. No 'Everyone else' group. 'Someone else…' lets you type a name."
   picker,"One person, one spot per week. Anyone already placed is hidden from other dropdowns on the same side (band or media)."
@@ -41,8 +42,10 @@ rules[22]{area,rule}:
   notify,"Never flood anyone: one record per person per Sunday, emails as a digest after edits settle, no repeats for the same part, a daily cap, daytime only. Rules live in src/lib/server/notify.ts."
   notify,"Only lineups saved in the app notify. The editor themselves, past Sundays and names that match nobody (or two people) are skipped."
   notify,"The bell always works; email is the one thing people can turn off (Me). No phone push."
+  theme,"Colours are tokens in global.css (light, navy dark on #051A59, AMOLED black). Components never hard-code a colour, so a new screen works in all three."
+  admin,"Log, People and Analytics live as tabs under the Admin bottom tab, not as header links. /log redirects to /admin/log."
 
-answered[8]{question,answer}:
+answered[10]{question,answer}:
   "Does 'backup' in the save rule mean the Second Praise Leader slot?","No: any second vocalist, in any vocal slot"
   "Should people not on a week's lineup be able to RSVP for it?","No: they only see the responses"
   "Should the server reject incomplete lineups too?","Yes: the lineup endpoint checks missingParts"
@@ -51,6 +54,11 @@ answered[8]{question,answer}:
   "Who gets the welcome email?","Everyone. The starting password is only included while they're still on it"
   "How are emails kept from flooding people?","A digest after edits settle, never repeated, capped per day, daytime only"
   "What are in-app notifications?","A bell with an unread count and a list. No phone push"
+  "Who sees the Admin tab?","Admins (for the Log) and superadmins (People, Analytics too)"
+  "Where is the theme chosen?","On Me, per device: System, Light, Dark, AMOLED"
 
-openQuestions[1]{question,currentAnswer}:
+openQuestions[4]{question,currentAnswer}:
   "Should the RSVP endpoint also refuse answers from people not on the lineup?","Not yet: only the app hides the buttons"
+  "Pick rates: out of what?","Every Sunday in the range; there's no availability data (src/lib/analytics-compute.ts)"
+  "When is a lineup change late?","3 days or less before the Sunday (LATE_DAYS); theme and playlist edits don't count"
+  "When was a playlist submitted?","The first save in the app that set it. Links pasted into Google Calendar have no time and are counted as 'set outside the app'"

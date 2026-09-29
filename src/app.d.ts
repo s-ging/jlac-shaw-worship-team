@@ -7,6 +7,11 @@
 import type { ExecutionContext, KVNamespace } from '@cloudflare/workers-types';
 
 declare global {
+	interface Window {
+		/** Re-reads the saved theme and applies it. Defined inline in app.html. */
+		__applyTheme?: () => void;
+	}
+
 	namespace App {
 		// interface Error {}
 

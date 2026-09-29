@@ -89,8 +89,8 @@
     max-width: 380px;
     display: flex;
     flex-direction: column;
-    background: white;
-    border: 1px solid var(--color-border, #e5e5e5);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 24px 20px;
   }
@@ -102,7 +102,7 @@
 
   .hint {
     font-size: 14px;
-    color: var(--color-text-secondary, #666);
+    color: var(--color-text-secondary);
     margin: 0 0 20px;
   }
 
@@ -116,21 +116,21 @@
     font-size: 16px; /* 16px stops iOS Safari zooming on focus */
     padding: 12px;
     margin-bottom: 16px;
-    border: 1px solid var(--color-border, #e5e5e5);
+    border: 1px solid var(--color-border);
     border-radius: 8px;
-    background: white;
+    background: var(--color-surface);
   }
 
   input:focus {
-    outline: 2px solid var(--color-primary, #2563eb);
+    outline: 2px solid var(--color-primary);
     outline-offset: -1px;
   }
 
   .submit {
     font-size: 16px;
     font-weight: 600;
-    color: white;
-    background: var(--color-primary, #2563eb);
+    color: var(--color-on-primary);
+    background: var(--color-primary);
     border: none;
     border-radius: 8px;
     padding: 14px;
@@ -145,9 +145,9 @@
 
   .error {
     font-size: 14px;
-    color: #b42318;
-    background: #fef3f2;
-    border: 1px solid #fecdca;
+    color: var(--color-danger);
+    background: var(--color-danger-bg);
+    border: 1px solid var(--color-danger-border);
     border-radius: 8px;
     padding: 10px 12px;
     margin: 0 0 16px;
@@ -155,7 +155,7 @@
 
   .footnote {
     font-size: 12px;
-    color: var(--color-text-secondary, #666);
+    color: var(--color-text-secondary);
     text-align: center;
     margin: 16px 0 0;
   }

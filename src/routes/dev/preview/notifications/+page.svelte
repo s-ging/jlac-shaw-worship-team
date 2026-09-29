@@ -63,8 +63,8 @@
     flex-wrap: wrap;
     gap: 4px 12px;
     font-size: 13px;
-    background: #fffaeb;
-    border: 1px solid #fedf89;
+    background: var(--color-warning-bg);
+    border: 1px solid var(--color-warning-border);
     border-radius: 8px;
     padding: 8px 12px;
     margin-bottom: 16px;

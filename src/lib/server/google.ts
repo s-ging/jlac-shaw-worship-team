@@ -50,8 +50,8 @@ async function accessToken(env: Env): Promise<string> {
   return cached.token
 }
 
-const eventUrl = (id: string) =>
-  `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events/${encodeURIComponent(id)}`
+const eventsUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events`
+const eventUrl = (id: string) => `${eventsUrl}/${encodeURIComponent(id)}`
 
 async function call(
   env: Env,
@@ -68,6 +68,26 @@ async function failed(res: Response, what: string): Promise<never> {
     throw error(502, 'The calendar account does not have permission to edit this calendar.')
   }
   throw error(502, 'Google Calendar did not respond as expected. Try again in a moment.')
+}
+
+/**
+ * Every event between two instants, recurring Sundays expanded. For Analytics:
+ * reads go through the account too, since the public key only works from the
+ * app's own pages.
+ */
+export async function listEvents(env: Env, timeMin: string, timeMax: string): Promise<CalendarEvent[]> {
+  const events: CalendarEvent[] = []
+  let pageToken = ''
+  do {
+    const params = new URLSearchParams({ timeMin, timeMax, singleEvents: 'true', orderBy: 'startTime', maxResults: '250' })
+    if (pageToken) params.set('pageToken', pageToken)
+    const res = await call(env, `${eventsUrl}?${params}`)
+    if (!res.ok) return failed(res, 'list')
+    const body = (await res.json()) as { items?: CalendarEvent[]; nextPageToken?: string }
+    events.push(...(body.items ?? []))
+    pageToken = body.nextPageToken ?? ''
+  } while (pageToken)
+  return events
 }
 
 export async function getEvent(env: Env, id: string): Promise<CalendarEvent> {

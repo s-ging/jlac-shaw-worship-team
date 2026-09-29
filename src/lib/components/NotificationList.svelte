@@ -35,7 +35,7 @@
   .empty {
     font-size: 14px;
     color: var(--color-text-secondary);
-    background: white;
+    background: var(--color-surface);
     border: 1px dashed var(--color-border);
     border-radius: 12px;
     padding: 20px 16px;
@@ -44,7 +44,7 @@
 
   .list {
     list-style: none;
-    background: white;
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 12px;
     overflow: hidden;

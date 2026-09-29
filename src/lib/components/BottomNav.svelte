@@ -1,17 +1,25 @@
 <script lang="ts">
+  import { page } from '$app/state'
+  import { canEditSchedule } from '$lib/roles'
+
   /** null on pages that aren't one of these tabs. */
   let { active = 'calendar' } = $props<{
-    active?: 'calendar' | 'music' | 'me' | null
+    active?: 'calendar' | 'admin' | 'me' | null
   }>()
+
+  // Admins (song leaders) get the Log inside; superadmins get People and Analytics too.
+  const showAdmin = $derived(canEditSchedule(page.data.user))
 </script>
 
 <nav class="bottom-nav">
   <a href="/" class="nav-item {active === 'calendar' ? 'active' : ''}">
     📅 Calendar
   </a>
-  <button class="nav-item {active === 'music' ? 'active' : ''}">
-    🎵 Music
-  </button>
+  {#if showAdmin}
+    <a href="/admin" class="nav-item {active === 'admin' ? 'active' : ''}">
+      🛠️ Admin
+    </a>
+  {/if}
   <a href="/me" class="nav-item {active === 'me' ? 'active' : ''}">
     👤 Me
   </a>
@@ -26,10 +34,10 @@
     display: flex;
     justify-content: space-around;
     align-items: center;
-    background: white;
+    background: var(--color-surface);
     border-top: 1px solid var(--color-border);
     padding: 8px 0 env(safe-area-inset-bottom, 8px) 0;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 -2px 10px var(--color-shadow);
     z-index: 100;
   }
 
@@ -40,7 +48,7 @@
     border: none;
     font-size: 14px;
     padding: 8px 16px;
-    color: #999;
+    color: var(--color-text-muted);
     cursor: pointer;
     font-weight: 500;
     text-decoration: none;
@@ -55,6 +63,6 @@
   }
 
   .nav-item:hover:not(.active) {
-    color: #666;
+    color: var(--color-text-secondary);
   }
 </style>

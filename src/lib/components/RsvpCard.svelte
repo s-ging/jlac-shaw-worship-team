@@ -189,8 +189,8 @@
   .rsvp {
     margin: 20px 0;
     padding: 16px;
-    background: white;
-    border: 1px solid var(--color-border, #e5e5e5);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
   }
 
@@ -216,16 +216,16 @@
     padding: 10px 4px;
     font-size: 14px;
     font-weight: 600;
-    background: #fafafa;
-    border: 1px solid var(--color-border, #e5e5e5);
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
     border-radius: 10px;
     cursor: pointer;
   }
 
   .option.selected {
-    background: var(--color-primary, #2563eb);
-    border-color: var(--color-primary, #2563eb);
-    color: white;
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-on-primary);
   }
 
   .option:disabled {
@@ -237,7 +237,7 @@
     list-style: none;
     margin: 14px 0 0;
     padding: 12px 0 0;
-    border-top: 1px solid #f0f0f0;
+    border-top: 1px solid var(--color-border-soft);
   }
 
   .responses li {
@@ -253,7 +253,7 @@
   }
 
   .status {
-    color: var(--color-text-secondary, #666);
+    color: var(--color-text-secondary);
     text-transform: capitalize;
     font-size: 13px;
   }
@@ -289,7 +289,7 @@
 
     .dock-date {
       font-size: 12px;
-      color: var(--color-text-secondary, #666);
+      color: var(--color-text-secondary);
     }
 
     .dock-ask {
@@ -319,13 +319,13 @@
   .muted,
   .signed-out {
     font-size: 14px;
-    color: var(--color-text-secondary, #666);
+    color: var(--color-text-secondary);
     margin: 12px 0 0;
   }
 
   .error {
     font-size: 13px;
-    color: #b42318;
+    color: var(--color-danger);
     margin: 10px 0 0;
   }
 </style>

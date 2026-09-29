@@ -81,7 +81,7 @@
 
   ul {
     list-style: none;
-    background: white;
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 12px;
   }
@@ -93,7 +93,7 @@
     padding: 10px 12px;
     font-size: 14px;
     line-height: 1.4;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--color-border-soft);
   }
 
   li:last-child {

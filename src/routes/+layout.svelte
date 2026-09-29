@@ -2,7 +2,6 @@
   import { goto, invalidateAll } from '$app/navigation'
   import { page } from '$app/state'
   import '../lib/styles/global.css'
-  import { canEditSchedule } from '$lib/roles'
   import { onMount } from 'svelte'
   import { bell, refreshBell } from '$lib/bell.svelte'
 
@@ -55,12 +54,6 @@
           <span aria-hidden="true">🔔</span>
           {#if bell.unread}<span class="badge" aria-hidden="true">{bell.unread > 9 ? '9+' : bell.unread}</span>{/if}
         </a>
-        {#if canEditSchedule(data.user)}
-          <a class="nav-link" href="/log">Log</a>
-        {/if}
-        {#if data.user.roles.isSuperAdmin}
-          <a class="nav-link" href="/admin">Admin</a>
-        {/if}
         <span class="greeting">{displayName}</span>
         <button class="link-btn" onclick={signOut} disabled={signingOut}>
           {signingOut ? '…' : 'Sign out'}
@@ -97,15 +90,15 @@
     align-items: center;
     gap: 12px;
     padding: 16px 20px;
-    background: white;
-    border-bottom: 1px solid var(--color-border, #e5e5e5);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
     flex-shrink: 0;
   }
 
   .app-title {
     font-size: 18px;
     font-weight: 600;
-    color: var(--color-text, #1a1a1a);
+    color: var(--color-text);
     text-decoration: none;
   }
 
@@ -121,7 +114,7 @@
   }
 
   .nav-link {
-    color: var(--color-primary, #2563eb);
+    color: var(--color-primary);
     font-weight: 600;
     text-decoration: none;
     padding: 6px 2px;
@@ -149,13 +142,13 @@
     font-weight: 700;
     line-height: 18px;
     text-align: center;
-    color: white;
-    background: #d92d20;
+    color: #ffffff;
+    background: var(--color-badge);
   }
 
   .greeting {
     font-weight: 600;
-    color: var(--color-text, #1a1a1a);
+    color: var(--color-text);
   }
 
   .link-btn {
@@ -163,7 +156,7 @@
     border: none;
     padding: 6px 2px;
     font-size: 14px;
-    color: var(--color-text-secondary, #666);
+    color: var(--color-text-secondary);
     cursor: pointer;
     text-decoration: underline;
   }
@@ -176,8 +169,8 @@
   .signin-btn {
     font-size: 14px;
     font-weight: 600;
-    color: white;
-    background: var(--color-primary, #2563eb);
+    color: var(--color-on-primary);
+    background: var(--color-primary);
     padding: 8px 14px;
     border-radius: 8px;
     text-decoration: none;
@@ -193,7 +186,7 @@
     gap: 8px;
     padding: 16px;
     font-size: 13px;
-    color: var(--color-text-secondary, #666);
+    color: var(--color-text-secondary);
   }
 
   .app-footer a {

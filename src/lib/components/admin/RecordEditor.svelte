@@ -182,7 +182,7 @@
   }
 
   .help.bad {
-    color: #b42318;
+    color: var(--color-danger);
   }
 
   input:not([type='checkbox']),
@@ -191,7 +191,7 @@
     padding: 10px;
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
-    background: white;
+    background: var(--color-surface);
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
 
@@ -201,7 +201,7 @@
   }
 
   .invalid {
-    border-color: #fda29b;
+    border-color: var(--color-danger-border);
   }
 
   details[open] > summary {
@@ -237,9 +237,9 @@
 
   .error {
     font-size: 14px;
-    color: #b42318;
-    background: #fef3f2;
-    border: 1px solid #fecdca;
+    color: var(--color-danger);
+    background: var(--color-danger-bg);
+    border: 1px solid var(--color-danger-border);
     border-radius: var(--radius);
     padding: 10px 12px;
   }
@@ -258,14 +258,14 @@
   }
 
   .cancel {
-    background: white;
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
   }
 
   .save {
     background: var(--color-primary);
     border: none;
-    color: white;
+    color: var(--color-on-primary);
   }
 
   button:disabled {

@@ -102,16 +102,16 @@
     padding: 40px 20px;
     max-width: 720px;
     margin: 0 auto;
-    background: white;
+    background: var(--color-surface);
     min-height: 100svh;
   }
   .container {
     font-family: var(--font-family, -apple-system, sans-serif);
     line-height: 1.7;
-    color: var(--color-text, #1a1a1a);
+    color: var(--color-text);
   }
   h1 { font-size: 28px; margin-bottom: 8px; }
   h2 { font-size: 20px; margin: 28px 0 8px; }
   ul { padding-left: 24px; }
-  a { color: var(--color-primary, #2563eb); }
+  a { color: var(--color-primary); }
 </style>

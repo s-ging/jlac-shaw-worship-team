@@ -141,7 +141,7 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    background: white;
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 14px 16px;
@@ -176,13 +176,13 @@
   }
 
   .primary {
-    color: white;
+    color: var(--color-on-primary);
     background: var(--color-primary);
     border: none;
   }
 
   .secondary {
-    background: white;
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
   }
 
@@ -239,7 +239,7 @@
   }
 
   .tag.done {
-    color: #067647;
+    color: var(--color-success);
   }
 
   .ok,
@@ -250,14 +250,14 @@
   }
 
   .ok {
-    color: #067647;
-    background: #ecfdf3;
-    border: 1px solid #abefc6;
+    color: var(--color-success);
+    background: var(--color-success-bg);
+    border: 1px solid var(--color-success-border);
   }
 
   .error {
-    color: #b42318;
-    background: #fef3f2;
-    border: 1px solid #fecdca;
+    color: var(--color-danger);
+    background: var(--color-danger-bg);
+    border: 1px solid var(--color-danger-border);
   }
 </style>

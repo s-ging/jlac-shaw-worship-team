@@ -547,7 +547,7 @@
     padding: 9px 10px;
     border: 1px solid var(--color-border);
     border-radius: 6px;
-    background: white;
+    background: var(--color-surface);
   }
 
   .field-input:focus {
@@ -557,17 +557,17 @@
   }
 
   .field-input::placeholder {
-    color: #aaa;
+    color: var(--color-text-muted);
   }
 
   .field-input.invalid {
-    border-color: #fdb022;
-    background-color: #fffaeb;
+    border-color: var(--color-warning-border);
+    background-color: var(--color-warning-bg);
   }
 
   .field-hint {
     font-size: 13px;
-    color: #b54708;
+    color: var(--color-warning);
   }
 
   .divider {
@@ -595,7 +595,7 @@
     gap: 8px;
     min-height: 40px;
     padding: 2px 4px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--color-border-soft);
     font-size: 14px;
   }
 
@@ -620,7 +620,7 @@
     width: 10px;
     height: 2px;
     border-radius: 1px;
-    background: #cfcfcf;
+    background: var(--color-border);
     vertical-align: middle;
   }
 
@@ -638,7 +638,7 @@
 
   .empty {
     font-size: 14px;
-    color: #aaa;
+    color: var(--color-text-muted);
     font-style: italic;
     padding: 10px 4px;
   }
@@ -657,7 +657,7 @@
     padding: 7px 26px 7px 10px;
     border: 1px solid var(--color-border);
     border-radius: 6px;
-    background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center;
+    background: var(--color-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center;
     appearance: none;
   }
 
@@ -669,7 +669,7 @@
 
   .pick.blank,
   .pick::placeholder {
-    color: #aaa;
+    color: var(--color-text-muted);
     font-weight: 400;
   }
 
@@ -711,7 +711,7 @@
     text-align-last: center;
     border: 1px solid var(--color-border);
     border-radius: 6px;
-    background: white;
+    background: var(--color-surface);
     appearance: none;
   }
 
@@ -722,7 +722,7 @@
     padding: 7px 10px;
     border: 1px solid var(--color-border);
     border-radius: 6px;
-    background: white;
+    background: var(--color-surface);
     color: var(--color-text);
   }
 
@@ -748,9 +748,9 @@
 
   .error {
     font-size: 14px;
-    color: #b42318;
-    background: #fef3f2;
-    border: 1px solid #fecdca;
+    color: var(--color-danger);
+    background: var(--color-danger-bg);
+    border: 1px solid var(--color-danger-border);
     border-radius: var(--radius);
     padding: 10px 12px;
     margin: 0 0 12px;
@@ -767,7 +767,7 @@
   .edit {
     width: 100%;
     color: var(--color-primary);
-    background: white;
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
   }
 
@@ -784,22 +784,22 @@
   .needed {
     flex-basis: 100%;
     font-size: 13px;
-    color: #b54708;
+    color: var(--color-warning);
   }
 
   /* Required and still empty: the reason Save is off. */
   .row.missing .role {
-    color: #b54708;
+    color: var(--color-warning);
     font-weight: 600;
   }
 
   .row.missing .pick {
-    border-color: #fdb022;
-    background-color: #fffaeb;
+    border-color: var(--color-warning-border);
+    background-color: var(--color-warning-bg);
   }
 
   .cancel {
-    background: white;
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
     color: var(--color-text);
   }
@@ -807,7 +807,7 @@
   .save {
     background: var(--color-primary);
     border: none;
-    color: white;
+    color: var(--color-on-primary);
   }
 
   button:disabled {

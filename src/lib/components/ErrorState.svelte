@@ -44,7 +44,7 @@
 
   .retry-btn {
     background: var(--color-primary);
-    color: white;
+    color: var(--color-on-primary);
     border: none;
     padding: 12px 32px;
     border-radius: var(--radius);

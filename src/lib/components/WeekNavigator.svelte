@@ -43,7 +43,7 @@
     padding: 12px 16px;
     border: 2px solid var(--color-border);
     border-radius: var(--radius);
-    background: white;
+    background: var(--color-surface);
     cursor: pointer;
     font-size: 15px;
     display: flex;
@@ -56,7 +56,7 @@
   }
 
   .week-item:hover:not(.active) {
-    border-color: #999;
+    border-color: var(--color-text-muted);
     background: var(--color-bg-hover);
   }
 

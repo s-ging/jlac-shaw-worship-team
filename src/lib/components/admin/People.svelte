@@ -268,14 +268,14 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
     color: var(--color-text);
-    background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 11px center;
+    background: var(--color-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 11px center;
     appearance: none;
   }
 
   .add {
     font-size: 14px;
     font-weight: 600;
-    color: white;
+    color: var(--color-on-primary);
     background: var(--color-primary);
     border: none;
     border-radius: var(--radius);
@@ -300,7 +300,7 @@
   .empty {
     padding: 32px 0;
     text-align: center;
-    color: #999;
+    color: var(--color-text-muted);
     font-style: italic;
   }
 
@@ -309,7 +309,7 @@
   }
 
   .card {
-    background: white;
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 12px 14px;
@@ -350,8 +350,8 @@
     font-weight: 600;
     padding: 3px 8px;
     border-radius: 999px;
-    background: #f0f0f0;
-    color: #444;
+    background: var(--color-bg-hover);
+    color: var(--color-text);
   }
 
   .badge.member {
@@ -367,17 +367,17 @@
 
   .badge.superadmin {
     background: var(--color-primary);
-    color: white;
+    color: var(--color-on-primary);
   }
 
   .badge.off {
-    background: #fef3f2;
-    color: #b42318;
+    background: var(--color-danger-bg);
+    color: var(--color-danger);
   }
 
   .edit {
     font-size: 14px;
-    background: white;
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
     padding: 0 14px;
@@ -408,7 +408,7 @@
   /* ---- PC: table ---- */
 
   .table-wrap {
-    background: white;
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 12px;
     overflow: hidden;
@@ -427,7 +427,7 @@
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--color-text-secondary);
-    background: #fafafa;
+    background: var(--color-bg);
     border-bottom: 1px solid var(--color-border);
     padding: 0 16px;
     height: 42px;
@@ -463,7 +463,7 @@
 
   td {
     padding: 12px 16px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--color-border-soft);
     vertical-align: middle;
   }
 
@@ -472,7 +472,7 @@
   }
 
   tbody tr:not(.form-row):hover {
-    background: #fcfcfd;
+    background: var(--color-bg-hover);
   }
 
   tr.open td {
@@ -481,7 +481,7 @@
   }
 
   .form-row td {
-    background: #fbfcff;
+    background: var(--color-bg);
     border-bottom: 1px solid var(--color-border);
     padding: 0 16px 12px;
   }
@@ -491,7 +491,7 @@
   }
 
   .unset {
-    color: #aaa;
+    color: var(--color-text-muted);
     font-style: italic;
   }
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { format } from 'date-fns'
+  import { format, isSunday, nextSunday } from 'date-fns'
   import { fetchMonthEvents, processEvent, extractMonthlyTheme } from '$lib/google-calendar'
   import type { RsvpPerson, RsvpRecord, WeekWithDetails } from '$lib/types'
 
@@ -170,10 +170,15 @@
     selectedWeekIndex = index
   }
 
-  // `/?week=2026-10-04` opens that Sunday: the bell and the emails link here.
+  /**
+   * Opens on the coming Sunday (today, if it's Sunday), in whichever month it
+   * falls: on Tuesday the 29th that's next month's first Sunday, not the top
+   * of this one. `/?week=2026-10-04` opens that Sunday instead; the bell and
+   * the emails link there.
+   */
   onMount(() => {
-    const week = new URLSearchParams(location.search).get('week')
-    if (!week || !/^\d{4}-\d{2}-\d{2}$/.test(week)) return loadMonth()
+    const asked = new URLSearchParams(location.search).get('week')
+    const week = asked && /^\d{4}-\d{2}-\d{2}$/.test(asked) ? asked : format(isSunday(today) ? today : nextSunday(today), 'yyyy-MM-dd')
     const [y, m] = week.split('-').map(Number)
     currentDate = new Date(y, m - 1, 1)
     loadMonth(week)
@@ -260,7 +265,7 @@
   }
   .empty-message {
     font-size: 18px;
-    color: var(--color-text-secondary, #666);
+    color: var(--color-text-secondary);
     margin-bottom: 8px;
   }
 </style>

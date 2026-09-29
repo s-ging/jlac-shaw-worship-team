@@ -65,7 +65,7 @@
     align-items: center;
     gap: 10px;
     min-height: 60px;
-    background: white;
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 12px 14px;

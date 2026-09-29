@@ -37,7 +37,7 @@
     grid-template-columns: 28px 1fr 1fr;
     align-items: center;
     padding: 6px 4px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--color-border-soft);
     font-size: 14px;
   }
 
@@ -52,7 +52,7 @@
   }
 
   .empty-text {
-    color: #aaa;
+    color: var(--color-text-muted);
     font-style: italic;
   }
 
@@ -87,6 +87,6 @@
   }
 
   .edit-btn:hover {
-    background: #f0f0f0;
+    background: var(--color-bg-hover);
   }
 </style>

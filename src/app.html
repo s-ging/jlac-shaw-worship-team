@@ -5,7 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Praise Team Scheduler</title>
     <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <meta name="theme-color" content="#ffffff" />
+    <script>
+      // The theme, before first paint so dark mode never flashes white. Also
+      // sets theme-color, which Android (Material You included) uses for the
+      // status bar and task switcher. $lib/theme calls this after a change.
+      ;(function () {
+        var BAR = { light: '#ffffff', dark: '#0a2266', amoled: '#0b0b0d' }
+        var dark = window.matchMedia('(prefers-color-scheme: dark)')
+        function apply() {
+          var pref = null
+          try { pref = localStorage.getItem('theme') } catch (e) {}
+          var root = document.documentElement
+          if (pref === 'light' || pref === 'dark' || pref === 'amoled') root.setAttribute('data-theme', pref)
+          else root.removeAttribute('data-theme')
+          var shown = root.getAttribute('data-theme') || (dark.matches ? 'dark' : 'light')
+          var bar = document.querySelector('meta[name="theme-color"]')
+          if (bar) bar.setAttribute('content', BAR[shown])
+        }
+        window.__applyTheme = apply
+        apply()
+        if (dark.addEventListener) dark.addEventListener('change', apply)
+      })()
+    </script>
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Praise Team" />

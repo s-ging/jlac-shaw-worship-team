@@ -1,7 +1,10 @@
 <script lang="ts">
   import { goto, invalidateAll } from '$app/navigation'
   import BottomNav from '$lib/components/BottomNav.svelte'
+  import Segmented from '$lib/components/Segmented.svelte'
   import { tierOf, TIER_LABELS } from '$lib/roles'
+  import { getThemePref, setThemePref, THEME_OPTIONS, type ThemePref } from '$lib/theme'
+  import { onMount } from 'svelte'
 
   let { data } = $props()
 
@@ -30,6 +33,15 @@
     } else {
       await invalidateAll()
     }
+  }
+
+  // Read after mount: the saved theme is in this browser, not on the server.
+  let theme = $state<ThemePref>('system')
+  onMount(() => (theme = getThemePref()))
+
+  function chooseTheme(pref: ThemePref) {
+    theme = pref
+    setThemePref(pref)
   }
 
   let currentPassword = $state('')
@@ -167,6 +179,14 @@
       {/if}
     </section>
 
+    <section class="card">
+      <h2>Appearance</h2>
+      <Segmented options={THEME_OPTIONS} value={theme} label="Theme" onchange={chooseTheme} />
+      <p class="help">
+        System follows your phone's dark mode. AMOLED is true black, easiest on OLED screens. Saved on this device only.
+      </p>
+    </section>
+
     <BottomNav active="me" />
   {/if}
 </div>
@@ -182,7 +202,7 @@
     font-size: 14px;
     line-height: 1.45;
     background: var(--color-bg-active);
-    border: 1px solid #c7d4fe;
+    border: 1px solid var(--color-primary-border);
     border-radius: 12px;
     padding: 12px 14px;
     margin-bottom: 18px;
@@ -232,7 +252,7 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    background: white;
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 16px;
@@ -272,14 +292,14 @@
     padding: 11px;
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
-    background: white;
+    background: var(--color-surface);
   }
 
   button {
     min-height: 46px;
     font-size: 15px;
     font-weight: 600;
-    color: white;
+    color: var(--color-on-primary);
     background: var(--color-primary);
     border: none;
     border-radius: var(--radius);
@@ -297,14 +317,14 @@
   }
 
   .ok {
-    color: #067647;
-    background: #ecfdf3;
-    border: 1px solid #abefc6;
+    color: var(--color-success);
+    background: var(--color-success-bg);
+    border: 1px solid var(--color-success-border);
   }
 
   .error {
-    color: #b42318;
-    background: #fef3f2;
-    border: 1px solid #fecdca;
+    color: var(--color-danger);
+    background: var(--color-danger-bg);
+    border: 1px solid var(--color-danger-border);
   }
 </style>

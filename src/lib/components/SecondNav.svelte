@@ -45,9 +45,9 @@
       bottom: calc(53px + env(safe-area-inset-bottom, 0px));
       z-index: 99;
       padding: 8px 12px;
-      background: white;
+      background: var(--color-surface);
       border-top: 1px solid var(--color-border);
-      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06);
+      box-shadow: 0 -4px 12px var(--color-shadow);
     }
   }
 </style>

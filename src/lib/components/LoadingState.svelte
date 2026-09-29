@@ -22,7 +22,7 @@
 
   .skeleton-header {
     height: 40px;
-    background: #e5e5e5;
+    background: var(--color-border);
     border-radius: var(--radius);
     margin-bottom: 16px;
     animation: pulse 1.5s ease-in-out infinite;
@@ -30,7 +30,7 @@
 
   .skeleton-row {
     height: 50px;
-    background: #e5e5e5;
+    background: var(--color-border);
     border-radius: var(--radius);
     margin-bottom: 8px;
     animation: pulse 1.5s ease-in-out infinite;
@@ -38,14 +38,14 @@
 
   .skeleton-divider {
     height: 2px;
-    background: #e5e5e5;
+    background: var(--color-border);
     margin: 16px 0;
     animation: pulse 1.5s ease-in-out infinite;
   }
 
   .skeleton-text {
     height: 20px;
-    background: #e5e5e5;
+    background: var(--color-border);
     border-radius: 4px;
     margin-bottom: 6px;
     animation: pulse 1.5s ease-in-out infinite;

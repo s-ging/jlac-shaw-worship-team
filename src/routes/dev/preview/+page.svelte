@@ -171,8 +171,8 @@
     font-size: 13px;
     padding: 8px 12px;
     margin-bottom: 16px;
-    background: #fff7e6;
-    border: 1px solid #f5d38a;
+    background: var(--color-warning-bg);
+    border: 1px solid var(--color-warning-border);
     border-radius: 8px;
   }
 

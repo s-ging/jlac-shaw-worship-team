@@ -5,18 +5,135 @@
   box-sizing: border-box;
 }
 
+/*
+ * Colour tokens. Components use these, never raw colours, so the three themes
+ * below are the only place a colour is chosen.
+ *
+ * The theme is `data-theme` on <html>: light, dark (navy) or amoled (black).
+ * With no data-theme ("System", the default) it follows the device: navy when
+ * the phone is in dark mode. Set in app.html before first paint; see $lib/theme.
+ */
 :root {
+  color-scheme: light;
   --color-primary: #2563eb;
   --color-primary-hover: #1d4ed8;
+  --color-primary-border: #c7d4fe;
+  --color-on-primary: #ffffff;
   --color-text: #1a1a1a;
   --color-text-secondary: #666;
+  --color-text-muted: #999;
   --color-border: #e5e5e5;
+  --color-border-soft: #f0f0f0;
   --color-bg: #fafafa;
-  --color-bg-white: #ffffff;
+  --color-surface: #ffffff;
+  --color-bg-white: var(--color-surface);
   --color-bg-hover: #f5f5f5;
   --color-bg-active: #e8edff;
+  --color-danger: #b42318;
+  --color-danger-bg: #fef3f2;
+  --color-danger-border: #fecdca;
+  --color-success: #067647;
+  --color-success-bg: #ecfdf3;
+  --color-success-border: #abefc6;
+  --color-warning: #b54708;
+  --color-warning-bg: #fffaeb;
+  --color-warning-border: #fedf89;
+  --color-badge: #d92d20;
+  --color-shadow: rgba(0, 0, 0, 0.06);
+  --color-scrollbar: #d0d0d0;
   --radius: 8px;
   --font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Navy dark, built on #051A59. Kept in sync with the [data-theme='dark'] block below. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --color-primary: #8ab4ff;
+    --color-primary-hover: #a8c7ff;
+    --color-primary-border: #3553a8;
+    --color-on-primary: #051a59;
+    --color-text: #e6ebfa;
+    --color-text-secondary: #a9b6db;
+    --color-text-muted: #7c8bb8;
+    --color-border: #22397a;
+    --color-border-soft: #172e70;
+    --color-bg: #051a59;
+    --color-surface: #0a2266;
+    --color-bg-hover: #112c78;
+    --color-bg-active: #1a3a8f;
+    --color-danger: #ff8a80;
+    --color-danger-bg: rgba(255, 110, 100, 0.14);
+    --color-danger-border: rgba(255, 120, 110, 0.4);
+    --color-success: #6ce0a0;
+    --color-success-bg: rgba(80, 220, 150, 0.12);
+    --color-success-border: rgba(80, 220, 150, 0.35);
+    --color-warning: #ffc266;
+    --color-warning-bg: rgba(255, 190, 90, 0.12);
+    --color-warning-border: rgba(255, 190, 90, 0.4);
+    --color-badge: #ff5a4f;
+    --color-shadow: rgba(0, 0, 0, 0.3);
+    --color-scrollbar: #2c4690;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-primary: #8ab4ff;
+  --color-primary-hover: #a8c7ff;
+  --color-primary-border: #3553a8;
+  --color-on-primary: #051a59;
+  --color-text: #e6ebfa;
+  --color-text-secondary: #a9b6db;
+  --color-text-muted: #7c8bb8;
+  --color-border: #22397a;
+  --color-border-soft: #172e70;
+  --color-bg: #051a59;
+  --color-surface: #0a2266;
+  --color-bg-hover: #112c78;
+  --color-bg-active: #1a3a8f;
+  --color-danger: #ff8a80;
+  --color-danger-bg: rgba(255, 110, 100, 0.14);
+  --color-danger-border: rgba(255, 120, 110, 0.4);
+  --color-success: #6ce0a0;
+  --color-success-bg: rgba(80, 220, 150, 0.12);
+  --color-success-border: rgba(80, 220, 150, 0.35);
+  --color-warning: #ffc266;
+  --color-warning-bg: rgba(255, 190, 90, 0.12);
+  --color-warning-border: rgba(255, 190, 90, 0.4);
+  --color-badge: #ff5a4f;
+  --color-shadow: rgba(0, 0, 0, 0.3);
+  --color-scrollbar: #2c4690;
+}
+
+/* True black, for OLED screens. Blue stays only as the accent. */
+:root[data-theme='amoled'] {
+  color-scheme: dark;
+  --color-primary: #8ab4ff;
+  --color-primary-hover: #a8c7ff;
+  --color-primary-border: #2b3f73;
+  --color-on-primary: #000814;
+  --color-text: #ededed;
+  --color-text-secondary: #a3a3a8;
+  --color-text-muted: #74747a;
+  --color-border: #26262b;
+  --color-border-soft: #18181b;
+  --color-bg: #000000;
+  --color-surface: #0b0b0d;
+  --color-bg-hover: #16161a;
+  --color-bg-active: #0f1f47;
+  --color-danger: #ff8a80;
+  --color-danger-bg: rgba(255, 110, 100, 0.14);
+  --color-danger-border: rgba(255, 120, 110, 0.4);
+  --color-success: #6ce0a0;
+  --color-success-bg: rgba(80, 220, 150, 0.12);
+  --color-success-border: rgba(80, 220, 150, 0.35);
+  --color-warning: #ffc266;
+  --color-warning-bg: rgba(255, 190, 90, 0.12);
+  --color-warning-border: rgba(255, 190, 90, 0.4);
+  --color-badge: #ff5a4f;
+  --color-shadow: rgba(0, 0, 0, 0.6);
+  --color-scrollbar: #2a2a30;
 }
 
 body {
@@ -38,6 +155,7 @@ input,
 select,
 textarea {
   font-family: inherit;
+  accent-color: var(--color-primary);
 }
 
 button {
@@ -55,10 +173,10 @@ button {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d0d0d0;
+  background: var(--color-scrollbar);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #b0b0b0;
+  background: var(--color-text-muted);
 }
