@@ -108,7 +108,7 @@ function sendDigests() {
 
 /**
  * { to, name, weeks: [{ date, dateLabel, parts, by, theme, playlist,
- *   vocalists: [{ part, name }], instrumentalists: [...], media }] }
+ *   vocalists: [{ part, name }], instrumentalists: [...], dancers: [...], media }] }
  */
 function sendDigest(d) {
   const weeks = d.weeks
@@ -130,6 +130,7 @@ function sendDigest(d) {
       ${w.playlist ? `<p style="margin:0 0 4px"><a href="${esc(w.playlist)}">YouTube playlist</a></p>` : ''}
       ${section('Vocalists', rows(w.vocalists))}
       ${section('Instrumentalists', rows(w.instrumentalists))}
+      ${section('Dancers', rows(w.dancers || []))}
       ${section('Media', w.media ? `<tr><td>${esc(w.media)}</td></tr>` : '')}
       ${button(appUrl() + '/?week=' + w.date, 'Open this week and RSVP')}
     </div>`).join('')
@@ -195,6 +196,7 @@ function sendTestEmails() {
     playlist: '',
     vocalists: [{ part: 'Praise Leader', name: 'Jean' }, { part: 'Second Praise Leader', name: 'Ezra' }],
     instrumentalists: [{ part: 'Drums', name: 'Mark' }, { part: 'Bass', name: 'Tester' }],
+    dancers: [],
     media: 'Sam and Chan'
   })
   sendDigest({

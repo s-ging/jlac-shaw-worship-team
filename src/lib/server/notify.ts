@@ -1,6 +1,6 @@
 import { format, parseISO } from 'date-fns'
 import { DISPLAY_TIMEZONE } from '$lib/config'
-import { labelText, type Lineup } from '$lib/lineup'
+import { labelText, type Lineup, type LineupSection } from '$lib/lineup'
 import { matchUser, splitNames } from '$lib/parts'
 import type { AssignmentNotice, PublicUser, UserRecord, WeekSnapshot } from '$lib/types'
 import { normalizeEmail, toPublicUser } from './kv'
@@ -63,9 +63,15 @@ function partsOf(lineup: Lineup, user: PublicUser, team: PublicUser[]): string[]
 }
 
 function snapshot(lineup: Lineup, week: { date: string; theme: string; playlist: string }): WeekSnapshot {
-  const entries = (section: 'vocalists' | 'instrumentalists') =>
+  const entries = (section: LineupSection) =>
     lineup.slots.filter((s) => s.section === section && s.name.trim()).map((s) => ({ part: labelText(s.label), name: s.name.trim() }))
-  return { ...week, vocalists: entries('vocalists'), instrumentalists: entries('instrumentalists'), media: lineup.media.trim() }
+  return {
+    ...week,
+    vocalists: entries('vocalists'),
+    instrumentalists: entries('instrumentalists'),
+    dancers: entries('dancers'),
+    media: lineup.media.trim()
+  }
 }
 
 async function putNotice(env: Env, notice: AssignmentNotice): Promise<void> {
@@ -199,6 +205,7 @@ export async function dueDigests(env: Env, users: UserRecord[], at = new Date())
             playlist: '',
             vocalists: [],
             instrumentalists: [],
+            dancers: [],
             media: ''
           }
           return { ...week, dateLabel: format(parseISO(n.date), 'EEEE, MMMM d'), parts: n.parts, by: n.by }

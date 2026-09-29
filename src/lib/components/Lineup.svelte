@@ -37,13 +37,15 @@
   const SECTIONS: { key: LineupSection | 'media'; title: string; addLabel: string }[] = [
     { key: 'vocalists', title: '🎤 Vocalists', addLabel: 'Add vocal part' },
     { key: 'instrumentalists', title: '🎸 Instrumentalists', addLabel: 'Add instrument' },
+    { key: 'dancers', title: '💃 Dancers', addLabel: 'Add dancer' },
     { key: 'media', title: '📹 Media', addLabel: 'Add media team' }
   ]
 
   /** The emoji a new part can carry. Always one of these, so every label starts with one. */
   const EMOJIS: Record<LineupSection, string[]> = {
     vocalists: ['4️⃣', '5️⃣', '6️⃣', '7️⃣', '🎤', '🎵'],
-    instrumentalists: ['🎹', '🎸', '🥁', '🎺', '🎷', '🎻', '🪕', '🪘', '🎵']
+    instrumentalists: ['🎹', '🎸', '🥁', '🎺', '🎷', '🎻', '🪕', '🪘', '🎵'],
+    dancers: ['💃', '🕺', '🩰']
   }
 
   const STATUS_ICON: Record<RsvpStatus, { icon: string; text: string }> = {
@@ -256,6 +258,11 @@
   }
 
   function addPart(section: LineupSection, choice: string) {
+    // Every dancer is just "Dancer": another row, no part to name.
+    if (section === 'dancers') {
+      rows.push({ section, label: '💃 Dancer', name: '', typing: false, custom: false, emoji: '', part: '' })
+      return
+    }
     const preset = presetsFor(section).find((p) => p.label === choice)
     if (preset) {
       rows.push({ ...preset, name: '', typing: false, custom: false, emoji: '', part: '' })
@@ -430,7 +437,7 @@
             <span class="name">{slot.name}</span>
           </div>
         {:else}
-          <p class="empty">Nobody assigned yet</p>
+          <p class="empty">{section.key === 'dancers' ? 'No dancers this week' : 'Nobody assigned yet'}</p>
         {/each}
       {:else}
         {#each rows as row, i (i)}

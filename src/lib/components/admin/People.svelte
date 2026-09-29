@@ -35,9 +35,11 @@
   const inactiveCount = $derived(users.filter((u: PublicUser) => !u.active).length)
   const filtering = $derived(Boolean(ministry || access))
 
+  /** What they do, in the team's order: vocals, instruments, dance, then Media. */
   const plays = (u: PublicUser) => {
     const parts = userParts(u)
-    return PARTS.filter((p) => parts.has(p.key)).map((p) => p.label)
+    const labels = PARTS.filter((p) => parts.has(p.key)).map((p) => p.label)
+    return u.roles.isMedia ? [...labels, 'Media'] : labels
   }
 
   /** What each column sorts on. Blank values (no primary role yet) always go last. */
@@ -87,7 +89,7 @@
     { key: 'name', label: 'Name' },
     { key: 'calendar', label: 'Calendar name' },
     { key: 'primary', label: 'Primary role' },
-    { key: null, label: 'Plays' },
+    { key: null, label: 'Ministry' },
     { key: 'access', label: 'Access' }
   ]
 </script>
@@ -97,7 +99,6 @@
   <span class="badges">
     {#if !person.active}<span class="badge off">Inactive</span>{/if}
     <span class="badge {tier}">{TIER_LABELS[tier]}</span>
-    {#if person.roles.isMedia}<span class="badge">Media</span>{/if}
   </span>
 {/snippet}
 
@@ -222,7 +223,7 @@
             <span class="name">{person.name}</span>
             <span class="meta">
               {primaryRoleLabel(person) ?? 'Primary role not set'}
-              {#if plays(person).length}· plays {plays(person).join(', ').toLowerCase()}{/if}
+              {#if plays(person).length}· {plays(person).join(', ').toLowerCase()}{/if}
             </span>
           </div>
           {#if editing !== person.email}

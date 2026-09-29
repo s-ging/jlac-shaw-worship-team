@@ -10,22 +10,35 @@ import type { PublicUser } from '$lib/types'
  * `UserRecord.instruments` is free text, since the roster was typed by hand
  * ("lead vocal, backup", "drum"). `partOf` maps those strings onto these parts.
  * Media isn't here: that's the `isMedia` role flag.
+ *
+ * The team's order, everywhere: vocalists, instrumentalists, dancers, then media.
  */
+export type PartGroup = 'vocals' | 'instruments' | 'dance'
+
 export interface Part {
   key: string
   label: string
+  group: PartGroup
   /** Normalized spellings that mean this part. */
   aliases: string[]
 }
 
 export const PARTS: Part[] = [
-  { key: 'leadvocal', label: 'Lead vocal', aliases: ['leadvocal', 'leadvocals', 'praiseleader', 'worshipleader'] },
-  { key: 'backup', label: 'Backup vocal', aliases: ['backup', 'backupvocal', 'backupvocals', 'backing'] },
-  { key: 'drums', label: 'Drums', aliases: ['drums', 'drum'] },
-  { key: 'lguitar', label: 'Lead guitar', aliases: ['lead', 'leadguitar', 'lguitar'] },
-  { key: 'rguitar', label: 'Rhythm guitar', aliases: ['rhythm', 'rhythmguitar', 'rguitar'] },
-  { key: 'bass', label: 'Bass', aliases: ['bass', 'bassguitar'] },
-  { key: 'keys', label: 'Keys', aliases: ['keys', 'keyboard', 'keyboards', 'piano'] }
+  { key: 'leadvocal', label: 'Lead vocal', group: 'vocals', aliases: ['leadvocal', 'leadvocals', 'praiseleader', 'worshipleader'] },
+  { key: 'backup', label: 'Backup vocal', group: 'vocals', aliases: ['backup', 'backupvocal', 'backupvocals', 'backing'] },
+  { key: 'drums', label: 'Drums', group: 'instruments', aliases: ['drums', 'drum'] },
+  { key: 'lguitar', label: 'Lead guitar', group: 'instruments', aliases: ['lead', 'leadguitar', 'lguitar'] },
+  { key: 'rguitar', label: 'Rhythm guitar', group: 'instruments', aliases: ['rhythm', 'rhythmguitar', 'rguitar'] },
+  { key: 'bass', label: 'Bass', group: 'instruments', aliases: ['bass', 'bassguitar'] },
+  { key: 'keys', label: 'Keys', group: 'instruments', aliases: ['keys', 'keyboard', 'keyboards', 'piano'] },
+  { key: 'dancer', label: 'Dancer', group: 'dance', aliases: ['dancer', 'dancers', 'dance', 'dancing'] }
+]
+
+/** The form's groups, in the team's order. Media comes after these, as its own flag. */
+export const PART_GROUPS: { key: PartGroup; label: string }[] = [
+  { key: 'vocals', label: 'Vocalist' },
+  { key: 'instruments', label: 'Instrumentalist' },
+  { key: 'dance', label: 'Dancer' }
 ]
 
 const normalize = (s: string) => s.toLowerCase().replace(/[^a-z]/g, '')
@@ -70,6 +83,7 @@ export const MINISTRY_FILTERS: { key: string; label: string; parts: string[] }[]
   { key: 'guitar', label: 'Guitar', parts: ['lguitar', 'rguitar'] },
   { key: 'bass', label: 'Bass', parts: ['bass'] },
   { key: 'keys', label: 'Keys', parts: ['keys'] },
+  { key: 'dance', label: 'Dance', parts: ['dancer'] },
   { key: 'media', label: 'Media', parts: [] }
 ]
 

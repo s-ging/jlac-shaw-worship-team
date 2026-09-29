@@ -8,7 +8,8 @@ import type { PublicUser, UserRoles } from '$lib/types'
  *   Admin       — song leaders: edit lineups, RSVP for others, read the log
  *   Superadmin  — everything, plus managing people and their access
  *
- * "Admin" is the `isWorshipLeader` flag. Media is a separate flag, not a tier.
+ * "Admin" is the `isWorshipLeader` flag. Media is a separate flag, not a tier: it's
+ * part of someone's ministry, listed after vocals, instruments and dance.
  */
 export type Tier = 'member' | 'admin' | 'superadmin'
 

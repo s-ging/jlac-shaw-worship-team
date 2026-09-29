@@ -1,6 +1,6 @@
 /**
  * Reads and rewrites the lineup block of a Calendar event description: the
- * Vocalists / Instrumentalists / Media lines.
+ * Vocalists / Instrumentalists / Dancers / Media lines, always in that order.
  *
  * This is separate from calendar-parser.ts on purpose. That parser normalizes
  * for display and throws the raw labels away, which is fine for reading but not
@@ -12,7 +12,10 @@
  * so both sides always agree on what the current lineup is.
  */
 
-export type LineupSection = 'vocalists' | 'instrumentalists'
+export type LineupSection = 'vocalists' | 'instrumentalists' | 'dancers'
+
+/** The sections with named slots, in the team's order. Media follows them. */
+export const LINEUP_SECTIONS: readonly LineupSection[] = ['vocalists', 'instrumentalists', 'dancers']
 
 export interface LineupSlot {
   section: LineupSection
@@ -35,7 +38,8 @@ export const STANDARD_SLOTS: ReadonlyArray<Omit<LineupSlot, 'name'>> = [
   { section: 'instrumentalists', label: '🥁 Drums' },
   { section: 'instrumentalists', label: '🎸 L. Guitar' },
   { section: 'instrumentalists', label: '🎸 R. Guitar' },
-  { section: 'instrumentalists', label: '🎸 Bass' }
+  { section: 'instrumentalists', label: '🎸 Bass' },
+  { section: 'dancers', label: '💃 Dancer' }
 ]
 
 /** Optional slots the editor offers under "Add instrument", for weeks that have them. */
@@ -103,7 +107,7 @@ function toText(raw: string): string {
 }
 
 function parseHeader(text: string): { section: LineupSection | 'media'; rest: string } | null {
-  const m = text.match(/^(vocalists|instrumentalists|media)\b\s*:?\s*(.*)$/i)
+  const m = text.match(/^(vocalists|instrumentalists|dancers|media)\b\s*:?\s*(.*)$/i)
   if (!m) return null
   const section = m[1].toLowerCase() as LineupSection | 'media'
   // "Media: Sam" is a header with names on it; "Vocalists - ..." is not a header at all.
@@ -254,7 +258,7 @@ export function editorSlots(lineup: Lineup): LineupSlot[] {
   const remaining = [...lineup.slots]
   const rows: LineupSlot[] = []
 
-  for (const section of ['vocalists', 'instrumentalists'] as const) {
+  for (const section of LINEUP_SECTIONS) {
     for (const std of STANDARD_SLOTS.filter((s) => s.section === section)) {
       const i = remaining.findIndex((s) => s.section === section && labelKey(s.label) === labelKey(std.label))
       rows.push(i >= 0 ? { ...remaining.splice(i, 1)[0] } : { ...std, name: '' })
@@ -279,9 +283,12 @@ function renderBlock(lineup: Lineup, html: boolean, bold: boolean): string[] {
     '',
     header('Instrumentalists'),
     ...entries('instrumentalists'),
-    '',
-    header('Media')
+    ''
   ]
+  // Most weeks have no dancers, so the heading only appears on weeks that do.
+  const dancers = entries('dancers')
+  if (dancers.length) lines.push(header('Dancers'), ...dancers, '')
+  lines.push(header('Media'))
   if (lineup.media.trim()) lines.push(esc(lineup.media.trim()))
   return lines
 }

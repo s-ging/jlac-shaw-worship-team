@@ -16,10 +16,12 @@ components[8]{name,job}:
   BottomNav.svelte,"App navigation: Calendar, Admin (admins and superadmins), Me. SecondNav assumes its 53px height."
   routes/admin/+layout.svelte,"The Admin tab's pages: People and Analytics (superadmins), Log (admins too). One tab means no tab bar."
   admin/People.svelte,"The team for superadmins: ministry and access filters, A–Z sort; a table on PC (900px and up), cards on phones. Edits in place."
-  admin/UserForm.svelte,"Add or edit one person. Two columns with `wide` for the table row. Primary role only offers what they play.""
+  admin/UserForm.svelte,"Add or edit one person. Two columns with `wide` for the table row. Ministry (Vocalist, Instrumentalist, Dancer, Media) is one group; Access is only the tiers. Primary role only offers what they do."
   NotificationList.svelte,"The bell's list: one row per upcoming Sunday you're on, newest change first, each opening that week (/?week=). Used by /notifications and its preview."
 
-rules[24]{area,rule}:
+rules[26]{area,rule}:
+  order,"Vocalists, instrumentalists, dancers, then media. Always, everywhere: lineup sections, the calendar block, the People form and filters, emails."
+  dancers,"Dancers is its own lineup section with one 💃 Dancer slot by default and '+ Add dancer' for more. Not required to save. The Dancers heading is only written to Calendar on weeks that have one."
   editing,"Edit in place: dropdowns replace the names in the same rows. Never open a separate form."
   picker,"List only people marked for the slot's part, under a heading naming it. No 'Everyone else' group. 'Someone else…' lets you type a name."
   picker,"One person, one spot per week. Anyone already placed is hidden from other dropdowns on the same side (band or media)."
@@ -32,7 +34,7 @@ rules[24]{area,rule}:
   rsvp,"Only people on a week's lineup can answer for it. Everyone else sees the responses, nothing more."
   secondnav,"Dock your RSVP only on weeks you're on the lineup. While editing, SecondNav holds Cancel and Save instead."
   people,"Mobile first, but PC gets power: a real table with sortable headers, not stretched cards."
-  people,"Filter by ministry part (Vocals, Drums, Guitar, Bass, Keys, Media) and by access (Member, Admin, Superadmin). Filters survive switching widths."
+  people,"Filter by ministry part (Vocals, Drums, Guitar, Bass, Keys, Dance, Media) and by access (Member, Admin, Superadmin). Filters survive switching widths."
   people,"Primary role is its own field (UserRecord.primaryRole), not guessed from the first listed part. It must be one of the things they do."
   preview,"Every screen worth changing gets a /dev/preview page on real roster data, so it can be checked without signing in."
   style,"DM Sans. Deliberate, calm layout; nothing that looks templated."

@@ -145,6 +145,8 @@ export interface WeekSnapshot {
   playlist: string
   vocalists: { part: string; name: string }[]
   instrumentalists: { part: string; name: string }[]
+  /** Missing on snapshots saved before dancers were added. */
+  dancers?: { part: string; name: string }[]
   media: string
 }
 

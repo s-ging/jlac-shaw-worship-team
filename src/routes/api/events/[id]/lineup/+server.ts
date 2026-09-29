@@ -1,6 +1,6 @@
 import { error, json } from '@sveltejs/kit'
 import { format, parseISO } from 'date-fns'
-import { diffLineup, extractLineup, missingParts, sameLineup, writeLineup, type Lineup, type LineupChange, type LineupSlot } from '$lib/lineup'
+import { diffLineup, extractLineup, LINEUP_SECTIONS, missingParts, sameLineup, writeLineup, type Lineup, type LineupChange, type LineupSlot } from '$lib/lineup'
 import { requireRole } from '$lib/server/auth'
 import { getEvent, patchEvent } from '$lib/server/google'
 import { listUsers } from '$lib/server/kv'
@@ -20,7 +20,7 @@ function readLineup(value: unknown): Lineup {
 
   const slots = v.slots.map((raw): LineupSlot => {
     const { section, label, name } = (raw ?? {}) as Partial<LineupSlot>
-    if (section !== 'vocalists' && section !== 'instrumentalists') throw error(400, 'Unknown lineup section')
+    if (!section || !LINEUP_SECTIONS.includes(section)) throw error(400, 'Unknown lineup section')
     if (typeof label !== 'string' || !label.trim() || label.length > 40 || !PLAIN.test(label)) {
       throw error(400, 'Invalid slot name')
     }

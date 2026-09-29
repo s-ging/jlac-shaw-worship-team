@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { partOf, PARTS, primaryChoices, userParts } from '$lib/parts'
+  import { PART_GROUPS, partOf, PARTS, primaryChoices, userParts } from '$lib/parts'
   import { rolesForTier, tierOf, TIER_LABELS, type Tier } from '$lib/roles'
   import type { PublicUser } from '$lib/types'
 
@@ -119,15 +119,30 @@
     <span class="help">How the schedule writes their name. Separate several with commas.</span>
   </label>
 
+  <!-- Always in the team's order: vocalist, instrumentalist, dancer, then media. -->
   <fieldset>
-    <legend>Plays</legend>
-    <div class="parts">
-      {#each PARTS as part (part.key)}
+    <legend>Ministry</legend>
+    {#each PART_GROUPS as group (group.key)}
+      <div class="group">
+        <span class="group-label">{group.label}</span>
+        <div class="parts">
+          {#each PARTS.filter((p) => p.group === group.key) as part (part.key)}
+            <label class="choice part">
+              <input type="checkbox" value={part.key} bind:group={parts} disabled={saving} />
+              <span>{part.label}</span>
+            </label>
+          {/each}
+        </div>
+      </div>
+    {/each}
+    <div class="group">
+      <span class="group-label">Media</span>
+      <div class="parts">
         <label class="choice part">
-          <input type="checkbox" value={part.key} bind:group={parts} disabled={saving} />
-          <span>{part.label}</span>
+          <input type="checkbox" bind:checked={isMedia} disabled={saving} />
+          <span>Media team</span>
         </label>
-      {/each}
+      </div>
     </div>
     <span class="help">The lineup editor lists them for these slots.</span>
   </fieldset>
@@ -149,16 +164,12 @@
         </span>
       </label>
     {/each}
-    <label class="choice">
-      <input type="checkbox" bind:checked={isMedia} disabled={saving} />
-      <span><strong>Media team</strong></span>
-    </label>
   </fieldset>
 
   <label>
     Primary role
     <select bind:value={primaryRole} disabled={saving || choices.length === 0}>
-      <option value="">{choices.length ? 'Not set' : 'Tick what they play, or Media, first'}</option>
+      <option value="">{choices.length ? 'Not set' : 'Tick their ministry first'}</option>
       {#each choices as choice (choice.key)}
         <option value={choice.key}>{choice.label}</option>
       {/each}
@@ -295,6 +306,25 @@
 
   .choice.part {
     align-items: center;
+  }
+
+  .group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .group + .group {
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border-soft);
+  }
+
+  .group-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
   }
 
   .choice input {

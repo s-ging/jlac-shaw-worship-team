@@ -15,7 +15,7 @@
  */
 
 import { DISPLAY_TIMEZONE } from './config'
-import { extractLineup, isServiceEvent, labelKey, type Lineup, type LineupChange } from './lineup'
+import { extractLineup, isServiceEvent, labelKey, type Lineup, type LineupChange, type LineupSection } from './lineup'
 import { calendarName, matchUser, PARTS, slotParts, splitNames, userParts } from './parts'
 import { extractPlaylist } from './week-info'
 import type { BarRow, MetricResults, Range } from './analytics'
@@ -101,7 +101,7 @@ interface Seat {
   /** labelKey of the slot, or 'media'. */
   key: string
   label: string
-  section: 'vocalists' | 'instrumentalists' | 'media'
+  section: LineupSection | 'media'
 }
 
 function seatsOf(week: ServiceWeek, users: PublicUser[]): Seat[] {
